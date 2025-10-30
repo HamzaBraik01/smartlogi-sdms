@@ -17,7 +17,6 @@ public class Livreur extends Utilisateur {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "zone_id")
-    private Zone zone; // Assure-toi que l'entité Zone.java existe
+    private Zone zone;
 
-    // Getters/Setters pour 'vehicule' et 'zone' gérés par Lombok
 }

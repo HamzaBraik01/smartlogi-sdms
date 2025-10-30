@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.io.Serializable;
 
 @Entity
@@ -15,9 +17,10 @@ import java.io.Serializable;
 @NoArgsConstructor
 public abstract class Utilisateur implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id", updatable = false, nullable = false)
+    @JdbcTypeCode(SqlTypes.UUID) // 2. Indique à Hibernate de le stocker comme type UUID natif en BDD
+    private String id; // 3. Le type en Java est String
     @Column(name = "nom")
     private String nom;
 
