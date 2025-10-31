@@ -8,6 +8,6 @@
     <include file="db/changelog/001-create-user-tables.xml"/>
     <include file="db/changelog/002-create-logistics-tables.xml"/>
     <include file="db/changelog/003-add-constraints.xml"/>
-
+    <include file="db/changelog/004-insert-data.xml"/>
 
 </databaseChangeLog>
