@@ -1,0 +1,3 @@
+2025-10-31 00:35:28 [restartedMain] INFO  c.s.s.SmartLogiDeliveryManagementSystemApplication - Starting SmartLogiDeliveryManagementSystemApplication using Java 17.0.12 with PID 20256 (C:\Users\hamza\Desktop\briefs\sdms\target\classes started by hamza in C:\Users\hamza\Desktop\briefs\sdms)
+2025-10-31 00:35:28 [restartedMain] INFO  c.s.s.SmartLogiDeliveryManagementSystemApplication - No active profile set, falling back to 1 default profile: "default"
+2025-10-31 00:35:36 [restartedMain] INFO  c.s.s.SmartLogiDeliveryManagementSystemApplication - Started SmartLogiDeliveryManagementSystemApplication in 9.776 seconds (process running for 10.415)

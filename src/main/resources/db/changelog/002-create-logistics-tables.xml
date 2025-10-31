@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="002" author="Hamza Braik">
+        <createTable tableName="zone">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="nom" type="VARCHAR(255)"/>
+            <column name="code_postal" type="VARCHAR(20)"/>
+            <column name="ville" type="VARCHAR(100)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="003" author="Hamza Braik">
+        <createTable tableName="produit">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="nom" type="VARCHAR(255)"/>
+            <column name="poids" type="DOUBLE"/>
+            <column name="prix" type="NUMERIC(19, 2)"/> </createTable>
+    </changeSet>
+
+    <changeSet id="004" author="Hamza Braik">
+        <createTable tableName="colis">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="poids_total" type="DOUBLE"/>
+            <column name="statut" type="VARCHAR(50)"/>
+            <column name="priorite" type="VARCHAR(50)"/>
+            <column name="ville_destination" type="VARCHAR(100)"/>
+            <column name="date_creation" type="TIMESTAMP"/>
+            <column name="date_dernier_statut" type="TIMESTAMP"/>
+            <column name="client_expediteur_id" type="UUID"/>
+            <column name="destinataire_id" type="UUID"/>
+            <column name="livreur_id" type="UUID"/>
+            <column name="zone_id" type="UUID"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="005" author="Hamza Braik">
+        <createTable tableName="colis_produit">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="quantite" type="INT"/>
+            <column name="date_ajout" type="TIMESTAMP"/> <column name="colis_id" type="UUID">
+            <constraints nullable="false"/>
+        </column>
+            <column name="produit_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="006" author="Hamza Braik">
+        <createTable tableName="historique_livraison">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="statut" type="VARCHAR(50)"/> <column name="date_changement" type="TIMESTAMP"/>
+            <column name="commentaire" type="VARCHAR(255)"/>
+
+            <column name="colis_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>
