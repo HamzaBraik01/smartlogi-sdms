@@ -35,4 +35,5 @@ build/
 command.txt
 # Log files
 *.log
+logs/*
 

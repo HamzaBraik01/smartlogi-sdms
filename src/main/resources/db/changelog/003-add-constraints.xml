@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="007" author="Hamza Braik">
+        <addForeignKeyConstraint baseTableName="utilisateur"
+                                 baseColumnNames="zone_id"
+                                 constraintName="fk_utilisateur_zone"
+                                 referencedTableName="zone"
+                                 referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+    </changeSet>
+
+    <changeSet id="008" author="Hamza Braik">
+        <addForeignKeyConstraint baseTableName="colis"
+                                 baseColumnNames="client_expediteur_id"
+                                 constraintName="fk_colis_client_expediteur"
+                                 referencedTableName="utilisateur"
+                                 referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+    </changeSet>
+
+    <changeSet id="009" author="Hamza Braik">
+        <addForeignKeyConstraint baseTableName="colis"
+                                 baseColumnNames="destinataire_id"
+                                 constraintName="fk_colis_destinataire"
+                                 referencedTableName="utilisateur"
+                                 referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+    </changeSet>
+
+    <changeSet id="010" author="Hamza Braik">
+        <addForeignKeyConstraint baseTableName="colis"
+                                 baseColumnNames="livreur_id"
+                                 constraintName="fk_colis_livreur"
+                                 referencedTableName="utilisateur"
+                                 referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+    </changeSet>
+
+    <changeSet id="011" author="Hamza Braik">
+        <addForeignKeyConstraint baseTableName="colis"
+                                 baseColumnNames="zone_id"
+                                 constraintName="fk_colis_zone"
+                                 referencedTableName="zone"
+                                 referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+    </changeSet>
+
+    <changeSet id="012" author="Hamza Braik">
+        <addForeignKeyConstraint baseTableName="colis_produit"
+                                 baseColumnNames="colis_id"
+                                 constraintName="fk_colis_produit_colis"
+                                 referencedTableName="colis"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/> </changeSet>
+
+    <changeSet id="013" author="Hamza Braik">
+        <addForeignKeyConstraint baseTableName="colis_produit"
+                                 baseColumnNames="produit_id"
+                                 constraintName="fk_colis_produit_produit"
+                                 referencedTableName="produit"
+                                 referencedColumnNames="id"
+                                 onDelete="NO ACTION"/> </changeSet>
+
+    <changeSet id="014" author="Hamza Braik">
+        <addForeignKeyConstraint baseTableName="historique_livraison"
+                                 baseColumnNames="colis_id"
+                                 constraintName="fk_historique_livraison_colis"
+                                 referencedTableName="colis"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/> </changeSet>
+
+</databaseChangeLog>
