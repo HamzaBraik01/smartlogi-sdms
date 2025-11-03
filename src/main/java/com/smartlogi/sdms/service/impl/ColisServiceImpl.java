@@ -11,11 +11,13 @@ import com.smartlogi.sdms.exception.ResourceNotFoundException;
 import com.smartlogi.sdms.exception.InvalidDataException;
 import com.smartlogi.sdms.mapper.ColisMapper;
 import com.smartlogi.sdms.repository.*;
+import com.smartlogi.sdms.repository.specification.ColisSpecification;
 import com.smartlogi.sdms.service.interfaces.ColisService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.PageRequest; // Important
 import org.springframework.data.domain.Sort;
@@ -237,5 +239,21 @@ public class ColisServiceImpl implements ColisService {
 
         log.info("Colis ID {} assigné avec succès au livreur {}", colisId, livreur.getNom());
         return colisMapper.toDto(updatedColis);
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ColisDTO> findAllColisByCriteria(StatutColis statut, String zoneId, String ville, Priorite priorite, Pageable pageable) {
+        log.debug("Recherche de colis par critères : statut={}, zoneId={}, ville={}, priorite={}",
+                statut, zoneId, ville, priorite);
+
+        // 1. Construire la spécification dynamique en appelant notre classe statique
+        Specification<Colis> spec = ColisSpecification.findByCriteria(statut, zoneId, ville, priorite);
+
+        // 2. Appeler le repository avec la spécification ET la pagination
+        // C'est la méthode findAll() qui vient de JpaSpecificationExecutor
+        Page<Colis> colisPage = colisRepository.findAll(spec, pageable);
+
+        // 3. Mapper la page d'entités en DTOs
+        return colisPage.map(colisMapper::toDto);
     }
 }
