@@ -1,0 +1,24 @@
+package com.smartlogi.sdms.service.interfaces;
+
+import com.smartlogi.sdms.dto.ColisDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+public interface ColisService {
+
+
+    ColisDTO creerDemandeLivraison(ColisDTO colisDTO);
+
+
+    ColisDTO update(String id, ColisDTO colisDTO);
+
+
+    ColisDTO findById(String id);
+
+
+    Page<ColisDTO> findAll(Pageable pageable);
+
+
+    void delete(String id);
+
+}
