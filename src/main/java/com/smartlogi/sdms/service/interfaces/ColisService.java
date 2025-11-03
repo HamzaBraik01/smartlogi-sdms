@@ -26,4 +26,5 @@ public interface ColisService {
     Page<ColisDTO> findColisByDestinataire(String destinataireId, Pageable pageable);
     Page<ColisDTO> findColisByLivreur(String livreurId, Pageable pageable);
     ColisDTO updateStatutColis(String colisId, StatutColis newStatut, String commentaire);
+    ColisDTO assignerColisLivreur(String colisId, String livreurId);
 }

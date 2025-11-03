@@ -5,6 +5,8 @@ import com.smartlogi.sdms.entity.Colis;
 import com.smartlogi.sdms.entity.HistoriqueLivraison;
 import com.smartlogi.sdms.entity.enumeration.Priorite;
 import com.smartlogi.sdms.entity.enumeration.StatutColis;
+import com.smartlogi.sdms.entity.Livreur;
+import com.smartlogi.sdms.repository.LivreurRepository;
 import com.smartlogi.sdms.exception.ResourceNotFoundException;
 import com.smartlogi.sdms.exception.InvalidDataException;
 import com.smartlogi.sdms.mapper.ColisMapper;
@@ -32,17 +34,20 @@ public class ColisServiceImpl implements ColisService {
 
     private final ClientExpediteurRepository clientExpediteurRepository;
     private final DestinataireRepository destinataireRepository;
+    private final LivreurRepository livreurRepository;
 
     public ColisServiceImpl(ColisRepository colisRepository,
                             ColisMapper colisMapper,
                             HistoriqueLivraisonRepository historiqueLivraisonRepository,
                             ClientExpediteurRepository clientExpediteurRepository,
-                            DestinataireRepository destinataireRepository) {
+                            DestinataireRepository destinataireRepository,
+                            LivreurRepository livreurRepository) {
         this.colisRepository = colisRepository;
         this.colisMapper = colisMapper;
         this.historiqueLivraisonRepository = historiqueLivraisonRepository;
         this.clientExpediteurRepository = clientExpediteurRepository;
         this.destinataireRepository = destinataireRepository;
+        this.livreurRepository = livreurRepository;
     }
 
 
@@ -205,6 +210,32 @@ public class ColisServiceImpl implements ColisService {
         historiqueLivraisonRepository.save(historique);
         log.info("Statut du colis ID {} mis à jour à {} et historique créé.", updatedColis.getId(), newStatut);
 
+        return colisMapper.toDto(updatedColis);
+    }
+
+    @Override
+    @Transactional
+    public ColisDTO assignerColisLivreur(String colisId, String livreurId) {
+        log.info("Tentative d'assignation du colis ID : {} au livreur ID : {}", colisId, livreurId);
+
+        Colis colis = colisRepository.findById(colisId)
+                .orElseThrow(() -> new ResourceNotFoundException("Colis non trouvé avec l'id : " + colisId));
+
+        Livreur livreur = livreurRepository.findById(livreurId)
+                .orElseThrow(() -> new ResourceNotFoundException("Livreur non trouvé avec l'id : " + livreurId));
+
+        if (colis.getZone() != null && livreur.getZone() != null &&
+                !colis.getZone().getId().equals(livreur.getZone().getId())) {
+
+            log.warn("Assignation inter-zone : Le colis (Zone {}) est assigné au livreur (Zone {}).",
+                    colis.getZone().getNom(), livreur.getZone().getNom());
+        }
+
+        colis.setLivreur(livreur);
+
+        Colis updatedColis = colisRepository.save(colis);
+
+        log.info("Colis ID {} assigné avec succès au livreur {}", colisId, livreur.getNom());
         return colisMapper.toDto(updatedColis);
     }
 }
