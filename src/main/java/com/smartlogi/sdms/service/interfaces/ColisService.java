@@ -1,6 +1,7 @@
 package com.smartlogi.sdms.service.interfaces;
 
 import com.smartlogi.sdms.dto.ColisDTO;
+import com.smartlogi.sdms.entity.enumeration.StatutColis;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -24,4 +25,5 @@ public interface ColisService {
     Page<ColisDTO> findColisByClientExpediteur(String clientExpediteurId, Pageable pageable);
     Page<ColisDTO> findColisByDestinataire(String destinataireId, Pageable pageable);
     Page<ColisDTO> findColisByLivreur(String livreurId, Pageable pageable);
+    ColisDTO updateStatutColis(String colisId, StatutColis newStatut, String commentaire);
 }

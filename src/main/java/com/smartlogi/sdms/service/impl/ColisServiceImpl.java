@@ -6,8 +6,9 @@ import com.smartlogi.sdms.entity.HistoriqueLivraison;
 import com.smartlogi.sdms.entity.enumeration.Priorite;
 import com.smartlogi.sdms.entity.enumeration.StatutColis;
 import com.smartlogi.sdms.exception.ResourceNotFoundException;
+import com.smartlogi.sdms.exception.InvalidDataException;
 import com.smartlogi.sdms.mapper.ColisMapper;
-import com.smartlogi.sdms.repository.*; // Importer tous les repos
+import com.smartlogi.sdms.repository.*;
 import com.smartlogi.sdms.service.interfaces.ColisService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,5 +159,52 @@ public class ColisServiceImpl implements ColisService {
         Page<Colis> colisPage = colisRepository.findAllByLivreurId(livreurId, pageableWithSort);
 
         return colisPage.map(colisMapper::toDto);
+    }
+
+    @Override
+    @Transactional
+    public ColisDTO updateStatutColis(String colisId, StatutColis newStatut, String commentaire) {
+        log.info("Tentative de mise à jour du statut pour colis ID : {}. Nouveau statut : {}", colisId, newStatut);
+
+        Colis colis = colisRepository.findById(colisId)
+                .orElseThrow(() -> new ResourceNotFoundException("Colis non trouvé avec l'id : " + colisId));
+
+        StatutColis currentStatut = colis.getStatut();
+
+        if (newStatut == null) {
+            throw new InvalidDataException("Le nouveau statut ne peut pas être null.");
+        }
+
+        if (currentStatut == newStatut) {
+            log.warn("Le colis {} est déjà au statut {}. Aucune action.", colisId, newStatut);
+            return colisMapper.toDto(colis); // Retourne l'état actuel
+        }
+
+        if (currentStatut == StatutColis.LIVRE) {
+            log.error("Transition de statut invalide : le colis {} est déjà LIVRE.", colisId);
+            throw new InvalidDataException("Le statut d'un colis déjà livré ne peut pas être modifié.");
+        }
+
+
+        if (newStatut.ordinal() < currentStatut.ordinal()) {
+            log.error("Transition de statut invalide (retour en arrière) : {} -> {} pour colis {}",
+                    currentStatut, newStatut, colisId);
+            throw new InvalidDataException("Transition de statut invalide (retour en arrière) : de " + currentStatut + " à " + newStatut);
+        }
+
+        colis.setStatut(newStatut);
+        colis.setDateDernierStatut(LocalDateTime.now()); // Automatisé aussi par @PreUpdate
+
+        Colis updatedColis = colisRepository.save(colis);
+
+        HistoriqueLivraison historique = new HistoriqueLivraison();
+        historique.setColis(updatedColis);
+        historique.setStatut(newStatut);
+        historique.setCommentaire(commentaire);
+
+        historiqueLivraisonRepository.save(historique);
+        log.info("Statut du colis ID {} mis à jour à {} et historique créé.", updatedColis.getId(), newStatut);
+
+        return colisMapper.toDto(updatedColis);
     }
 }
