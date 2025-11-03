@@ -23,5 +23,5 @@ public interface ColisService {
 
     Page<ColisDTO> findColisByClientExpediteur(String clientExpediteurId, Pageable pageable);
     Page<ColisDTO> findColisByDestinataire(String destinataireId, Pageable pageable);
-
+    Page<ColisDTO> findColisByLivreur(String livreurId, Pageable pageable);
 }

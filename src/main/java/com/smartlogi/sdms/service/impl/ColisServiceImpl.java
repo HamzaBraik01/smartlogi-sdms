@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.PageRequest; // Important
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -130,6 +132,30 @@ public class ColisServiceImpl implements ColisService {
         log.debug("Recherche des colis (paginée) pour le destinataire ID : {}", destinataireId);
 
         Page<Colis> colisPage = colisRepository.findAllByDestinataireId(destinataireId, pageable);
+
+        return colisPage.map(colisMapper::toDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ColisDTO> findColisByLivreur(String livreurId, Pageable pageable) {
+        log.debug("Recherche des colis (paginée) pour le livreur ID : {}", livreurId);
+
+        Pageable pageableWithSort = pageable;
+
+        if (pageable.getSort().isUnsorted()) {
+            log.trace("Aucun tri spécifié. Application du tri par défaut (priorite DESC, zone.nom ASC)");
+
+
+            Sort defaultSort = Sort.by(
+                    Sort.Order.desc("priorite"),
+                    Sort.Order.asc("zone.nom") // Tri par nom de la zone
+            );
+
+            pageableWithSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), defaultSort);
+        }
+
+        Page<Colis> colisPage = colisRepository.findAllByLivreurId(livreurId, pageableWithSort);
 
         return colisPage.map(colisMapper::toDto);
     }

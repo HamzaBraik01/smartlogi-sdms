@@ -11,4 +11,5 @@ import org.springframework.stereotype.Repository;
 public interface ColisRepository extends JpaRepository<Colis, String>, JpaSpecificationExecutor<Colis> {
     Page<Colis> findAllByClientExpediteurId(String clientExpediteurId, Pageable pageable);
     Page<Colis> findAllByDestinataireId(String destinataireId, Pageable pageable);
+    Page<Colis> findAllByLivreurId(String livreurId, Pageable pageable);
 }
