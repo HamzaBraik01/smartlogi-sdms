@@ -123,4 +123,14 @@ public class ColisServiceImpl implements ColisService {
 
         return colisPage.map(colisMapper::toDto);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ColisDTO> findColisByDestinataire(String destinataireId, Pageable pageable) {
+        log.debug("Recherche des colis (paginée) pour le destinataire ID : {}", destinataireId);
+
+        Page<Colis> colisPage = colisRepository.findAllByDestinataireId(destinataireId, pageable);
+
+        return colisPage.map(colisMapper::toDto);
+    }
 }

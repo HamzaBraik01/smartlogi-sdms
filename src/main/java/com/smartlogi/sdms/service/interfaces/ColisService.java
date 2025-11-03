@@ -22,5 +22,6 @@ public interface ColisService {
     void delete(String id);
 
     Page<ColisDTO> findColisByClientExpediteur(String clientExpediteurId, Pageable pageable);
+    Page<ColisDTO> findColisByDestinataire(String destinataireId, Pageable pageable);
 
 }
