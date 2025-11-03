@@ -113,4 +113,14 @@ public class ColisServiceImpl implements ColisService {
 
         colisRepository.deleteById(id);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ColisDTO> findColisByClientExpediteur(String clientExpediteurId, Pageable pageable) {
+        log.debug("Recherche des colis (paginée) pour le client ID : {}", clientExpediteurId);
+
+        Page<Colis> colisPage = colisRepository.findAllByClientExpediteurId(clientExpediteurId, pageable);
+
+        return colisPage.map(colisMapper::toDto);
+    }
 }
