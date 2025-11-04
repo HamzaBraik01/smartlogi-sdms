@@ -1,11 +1,14 @@
 package com.smartlogi.sdms.dto;
 import com.smartlogi.sdms.entity.enumeration.Priorite;
 import com.smartlogi.sdms.entity.enumeration.StatutColis;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class ColisDTO {
@@ -31,7 +34,7 @@ public class ColisDTO {
     private LocalDateTime dateCreation;
     private LocalDateTime dateDernierStatut;
 
-    // --- Clés étrangères (pour la création et la liaison) ---
+
 
     @NotNull(message = "L'expéditeur (client) est obligatoire")
     private String clientExpediteurId;
@@ -39,9 +42,12 @@ public class ColisDTO {
     @NotNull(message = "Le destinataire est obligatoire")
     private String destinataireId;
 
-    // Le livreur et la zone peuvent être null au début
     private String livreurId;
     private String zoneId;
+
+    @Valid
+    @NotEmpty(message = "Un colis doit contenir au moins un produit")
+    private List<ColisProduitDTO> produits;
 
 
 }

@@ -1,6 +1,7 @@
 package com.smartlogi.sdms.service.impl;
 
 import com.smartlogi.sdms.dto.ColisDTO;
+import com.smartlogi.sdms.dto.ColisProduitDTO;
 import com.smartlogi.sdms.dto.StatistiqueLivreurDTO;
 import com.smartlogi.sdms.dto.StatistiqueZoneDTO;
 import com.smartlogi.sdms.dto.StatistiquesTourneeDTO;
@@ -9,7 +10,11 @@ import com.smartlogi.sdms.entity.HistoriqueLivraison;
 import com.smartlogi.sdms.entity.enumeration.Priorite;
 import com.smartlogi.sdms.entity.enumeration.StatutColis;
 import com.smartlogi.sdms.entity.Livreur;
+import com.smartlogi.sdms.entity.ColisProduit;
+import com.smartlogi.sdms.entity.Produit;
 import com.smartlogi.sdms.repository.LivreurRepository;
+import com.smartlogi.sdms.repository.ColisProduitRepository;
+import com.smartlogi.sdms.repository.ProduitRepository;
 import com.smartlogi.sdms.exception.ResourceNotFoundException;
 import com.smartlogi.sdms.exception.InvalidDataException;
 import com.smartlogi.sdms.mapper.ColisMapper;
@@ -27,6 +32,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -37,6 +43,8 @@ public class ColisServiceImpl implements ColisService {
     private final ColisRepository colisRepository;
     private final ColisMapper colisMapper;
     private final HistoriqueLivraisonRepository historiqueLivraisonRepository;
+    private final ProduitRepository produitRepository;
+    private final ColisProduitRepository colisProduitRepository;
 
     private final ClientExpediteurRepository clientExpediteurRepository;
     private final DestinataireRepository destinataireRepository;
@@ -47,13 +55,18 @@ public class ColisServiceImpl implements ColisService {
                             HistoriqueLivraisonRepository historiqueLivraisonRepository,
                             ClientExpediteurRepository clientExpediteurRepository,
                             DestinataireRepository destinataireRepository,
-                            LivreurRepository livreurRepository) {
+                            LivreurRepository livreurRepository,
+                            ProduitRepository produitRepository,
+                            ColisProduitRepository colisProduitRepository) {
         this.colisRepository = colisRepository;
         this.colisMapper = colisMapper;
         this.historiqueLivraisonRepository = historiqueLivraisonRepository;
         this.clientExpediteurRepository = clientExpediteurRepository;
         this.destinataireRepository = destinataireRepository;
         this.livreurRepository = livreurRepository;
+        this.produitRepository = produitRepository;
+        this.colisProduitRepository = colisProduitRepository;
+
     }
 
 
@@ -80,17 +93,36 @@ public class ColisServiceImpl implements ColisService {
         }
 
         Colis savedColis = colisRepository.save(colis);
-        log.info("Colis ID {} sauvegardé avec le statut CREE.", savedColis.getId());
+        double poidsTotalCalcule = 0.0;
+        List<ColisProduit> produitsDuColis = new ArrayList<>();
 
+        for (ColisProduitDTO produitDto : colisDTO.getProduits()) {
+            Produit produit = produitRepository.findById(produitDto.getProduitId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Produit non trouvé : " + produitDto.getProduitId()));
+
+            poidsTotalCalcule += produit.getPoids() * produitDto.getQuantite();
+
+            ColisProduit cp = new ColisProduit();
+            cp.setColis(savedColis);
+            cp.setProduit(produit);
+            cp.setQuantite(produitDto.getQuantite());
+            produitsDuColis.add(cp);
+        }
+
+        colisProduitRepository.saveAll(produitsDuColis);
+        savedColis.setPoidsTotal(poidsTotalCalcule);
+        Colis colisFinal = colisRepository.save(savedColis);
+
+        // Historique
         HistoriqueLivraison historique = new HistoriqueLivraison();
-        historique.setColis(savedColis);
+        historique.setColis(colisFinal);
         historique.setStatut(StatutColis.CREE);
-        historique.setCommentaire("Demande de livraison créée.");
-
+        historique.setCommentaire("Demande de livraison créée avec " + produitsDuColis.size() + " produit(s).");
         historiqueLivraisonRepository.save(historique);
-        log.info("Entrée d'historique créée pour le colis ID {}.", savedColis.getId());
 
-        return colisMapper.toDto(savedColis);
+        log.info("Colis créé avec succès ({} produits, {} kg)", produitsDuColis.size(), poidsTotalCalcule);
+
+        return colisMapper.toDto(colisFinal);
     }
 
     @Override

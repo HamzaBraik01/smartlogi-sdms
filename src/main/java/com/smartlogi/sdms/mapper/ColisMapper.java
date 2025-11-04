@@ -8,8 +8,9 @@ import com.smartlogi.sdms.entity.Zone;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import com.smartlogi.sdms.mapper.ColisProduitMapper;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring",uses = {ColisProduitMapper.class})
 public interface ColisMapper {
 
     // --- Entité vers DTO ---
@@ -17,6 +18,7 @@ public interface ColisMapper {
     @Mapping(source = "destinataire.id", target = "destinataireId")
     @Mapping(source = "livreur.id", target = "livreurId")
     @Mapping(source = "zone.id", target = "zoneId")
+    @Mapping(source = "colisProduits", target = "produits")
     ColisDTO toDto(Colis entity);
 
     // --- DTO vers Entité ---
@@ -24,6 +26,7 @@ public interface ColisMapper {
     @Mapping(source = "destinataireId", target = "destinataire", qualifiedByName = "destinataireFromId")
     @Mapping(source = "livreurId", target = "livreur", qualifiedByName = "livreurFromId")
     @Mapping(source = "zoneId", target = "zone", qualifiedByName = "zoneFromId")
+    @Mapping(target = "colisProduits", ignore = true) 
     Colis toEntity(ColisDTO dto);
 
     @Named("clientFromId")
