@@ -2,6 +2,7 @@ package com.smartlogi.sdms.service.interfaces;
 
 import com.smartlogi.sdms.dto.GestionnaireLogistiqueDTO;
 import com.smartlogi.sdms.dto.GlobalSearchResponseDTO;
+import com.smartlogi.sdms.dto.StatistiquesTourneeDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -20,4 +21,6 @@ public interface GestionnaireLogistiqueService {
     Page<GestionnaireLogistiqueDTO> findAll(Pageable pageable);
 
     void delete(String id);
+    StatistiquesTourneeDTO getStatistiquesTournees();
+
 }

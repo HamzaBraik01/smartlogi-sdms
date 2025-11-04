@@ -2,10 +2,12 @@ package com.smartlogi.sdms.service.impl;
 
 import com.smartlogi.sdms.dto.GestionnaireLogistiqueDTO;
 import com.smartlogi.sdms.dto.GlobalSearchResponseDTO;
+import com.smartlogi.sdms.dto.StatistiquesTourneeDTO;
 import com.smartlogi.sdms.entity.GestionnaireLogistique;
 import com.smartlogi.sdms.exception.ResourceNotFoundException;
 import com.smartlogi.sdms.mapper.GestionnaireLogistiqueMapper;
 import com.smartlogi.sdms.repository.GestionnaireLogistiqueRepository;
+import com.smartlogi.sdms.service.interfaces.ColisService;
 import com.smartlogi.sdms.service.interfaces.GestionnaireLogistiqueService;
 import com.smartlogi.sdms.service.interfaces.GlobalSearchService;
 import org.slf4j.Logger;
@@ -22,13 +24,16 @@ public class GestionnaireLogistiqueServiceImpl implements GestionnaireLogistique
     private static final Logger log = LoggerFactory.getLogger(GestionnaireLogistiqueServiceImpl.class);
 
     private final GlobalSearchService globalSearchService;
+    private final ColisService colisService;
     private final GestionnaireLogistiqueRepository gestionnaireRepository;
     private final GestionnaireLogistiqueMapper gestionnaireMapper;
 
     public GestionnaireLogistiqueServiceImpl(GlobalSearchService globalSearchService,
+                                             ColisService colisService,
                                              GestionnaireLogistiqueRepository gestionnaireRepository,
                                              GestionnaireLogistiqueMapper gestionnaireMapper) {
         this.globalSearchService = globalSearchService;
+        this.colisService = colisService;
         this.gestionnaireRepository = gestionnaireRepository;
         this.gestionnaireMapper = gestionnaireMapper;
     }
@@ -88,5 +93,12 @@ public class GestionnaireLogistiqueServiceImpl implements GestionnaireLogistique
             throw new ResourceNotFoundException("Gestionnaire non trouvé : " + id);
         }
         gestionnaireRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public StatistiquesTourneeDTO getStatistiquesTournees() {
+        log.debug("Le gestionnaire demande les statistiques de tournées.");
+        return colisService.getStatistiquesTournees();
     }
 }

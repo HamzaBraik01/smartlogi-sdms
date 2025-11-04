@@ -1,6 +1,9 @@
 package com.smartlogi.sdms.service.impl;
 
 import com.smartlogi.sdms.dto.ColisDTO;
+import com.smartlogi.sdms.dto.StatistiqueLivreurDTO;
+import com.smartlogi.sdms.dto.StatistiqueZoneDTO;
+import com.smartlogi.sdms.dto.StatistiquesTourneeDTO;
 import com.smartlogi.sdms.entity.Colis;
 import com.smartlogi.sdms.entity.HistoriqueLivraison;
 import com.smartlogi.sdms.entity.enumeration.Priorite;
@@ -24,6 +27,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class ColisServiceImpl implements ColisService {
@@ -246,14 +250,27 @@ public class ColisServiceImpl implements ColisService {
         log.debug("Recherche de colis par critères : statut={}, zoneId={}, ville={}, priorite={}",
                 statut, zoneId, ville, priorite);
 
-        // 1. Construire la spécification dynamique en appelant notre classe statique
         Specification<Colis> spec = ColisSpecification.findByCriteria(statut, zoneId, ville, priorite);
 
-        // 2. Appeler le repository avec la spécification ET la pagination
-        // C'est la méthode findAll() qui vient de JpaSpecificationExecutor
+
         Page<Colis> colisPage = colisRepository.findAll(spec, pageable);
 
-        // 3. Mapper la page d'entités en DTOs
         return colisPage.map(colisMapper::toDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public StatistiquesTourneeDTO getStatistiquesTournees() {
+        log.debug("Calcul des statistiques de tournées...");
+
+        List<StatistiqueLivreurDTO> statsLivreurs = colisRepository.findStatistiquesParLivreur();
+        List<StatistiqueZoneDTO> statsZones = colisRepository.findStatistiquesParZone();
+
+        StatistiquesTourneeDTO response = new StatistiquesTourneeDTO();
+        response.setParLivreur(statsLivreurs);
+        response.setParZone(statsZones);
+
+        log.info("Statistiques calculées : {} livreurs, {} zones.", statsLivreurs.size(), statsZones.size());
+        return response;
     }
 }

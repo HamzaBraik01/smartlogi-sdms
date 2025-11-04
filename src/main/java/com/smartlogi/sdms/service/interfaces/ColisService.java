@@ -1,6 +1,7 @@
 package com.smartlogi.sdms.service.interfaces;
 
 import com.smartlogi.sdms.dto.ColisDTO;
+import com.smartlogi.sdms.dto.StatistiquesTourneeDTO;
 import com.smartlogi.sdms.entity.enumeration.Priorite;
 import com.smartlogi.sdms.entity.enumeration.StatutColis;
 import org.springframework.data.domain.Page;
@@ -29,4 +30,5 @@ public interface ColisService {
     ColisDTO updateStatutColis(String colisId, StatutColis newStatut, String commentaire);
     ColisDTO assignerColisLivreur(String colisId, String livreurId);
     Page<ColisDTO> findAllColisByCriteria(StatutColis statut, String zoneId, String ville, Priorite priorite, Pageable pageable);
+    StatistiquesTourneeDTO getStatistiquesTournees();
 }
