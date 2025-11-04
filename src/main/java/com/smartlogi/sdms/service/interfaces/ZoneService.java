@@ -1,14 +1,15 @@
 package com.smartlogi.sdms.service.interfaces;
 import com.smartlogi.sdms.dto.ZoneDTO;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ZoneService {
 
-    ZoneDTO save(ZoneDTO zoneDTO);
+    ZoneDTO save(@Valid ZoneDTO zoneDTO);
 
 
-    ZoneDTO update(String id, ZoneDTO zoneDTO);
+    ZoneDTO update(String id, @Valid ZoneDTO zoneDTO);
 
 
     ZoneDTO findById(String id);

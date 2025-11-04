@@ -30,12 +30,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.PageRequest; // Important
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Transactional
+@Validated
 public class ColisServiceImpl implements ColisService {
 
     private static final Logger log = LoggerFactory.getLogger(ColisServiceImpl.class);
@@ -72,7 +75,7 @@ public class ColisServiceImpl implements ColisService {
 
     @Override
     @Transactional
-    public ColisDTO creerDemandeLivraison(ColisDTO colisDTO) {
+    public ColisDTO creerDemandeLivraison( ColisDTO colisDTO) {
         log.info("Début de la création de demande de livraison pour le client ID : {}", colisDTO.getClientExpediteurId());
 
         if (!clientExpediteurRepository.existsById(colisDTO.getClientExpediteurId())) {

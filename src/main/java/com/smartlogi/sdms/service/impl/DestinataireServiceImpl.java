@@ -12,9 +12,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
+
 
 @Service
 @Transactional
+@Validated
 public class DestinataireServiceImpl implements DestinataireService {
 
     private static final Logger log = LoggerFactory.getLogger(DestinataireServiceImpl.class);

@@ -1,14 +1,15 @@
 package com.smartlogi.sdms.service.interfaces;
 
 import com.smartlogi.sdms.dto.LivreurDTO;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface LivreurService {
 
-    LivreurDTO save(LivreurDTO livreurDTO);
+    LivreurDTO save(@Valid LivreurDTO livreurDTO);
 
-    LivreurDTO update(String id, LivreurDTO livreurDTO);
+    LivreurDTO update(String id, @Valid LivreurDTO livreurDTO);
 
     LivreurDTO findById(String id);
 

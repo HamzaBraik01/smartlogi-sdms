@@ -2,6 +2,7 @@ package com.smartlogi.sdms.service.impl;
 
 import com.smartlogi.sdms.dto.ClientExpediteurDTO;
 import com.smartlogi.sdms.entity.ClientExpediteur;
+import com.smartlogi.sdms.exception.InvalidDataException;
 import com.smartlogi.sdms.exception.ResourceNotFoundException;
 import com.smartlogi.sdms.mapper.ClientExpediteurMapper;
 import com.smartlogi.sdms.repository.ClientExpediteurRepository;
@@ -12,9 +13,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
+import java.util.Optional;
 
 @Service
 @Transactional
+@Validated
 public class ClientExpediteurServiceImpl implements ClientExpediteurService {
 
     private static final Logger log = LoggerFactory.getLogger(ClientExpediteurServiceImpl.class);
@@ -31,10 +35,10 @@ public class ClientExpediteurServiceImpl implements ClientExpediteurService {
     @Override
     public ClientExpediteurDTO save(ClientExpediteurDTO clientExpediteurDTO) {
         log.info("Création d'un nouveau client expéditeur : {}", clientExpediteurDTO.getEmail());
+        if (clientExpediteurRepository.findByEmail(clientExpediteurDTO.getEmail()).isPresent()) {
+            throw new InvalidDataException("Un utilisateur avec cet email existe déjà.");
+        }
         ClientExpediteur client = clientExpediteurMapper.toEntity(clientExpediteurDTO);
-
-
-
         client = clientExpediteurRepository.save(client);
         return clientExpediteurMapper.toDto(client);
     }
@@ -45,6 +49,13 @@ public class ClientExpediteurServiceImpl implements ClientExpediteurService {
 
         ClientExpediteur existingClient = clientExpediteurRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ClientExpediteur non trouvé avec l'id : " + id));
+
+        if (!existingClient.getEmail().equals(clientExpediteurDTO.getEmail())) {
+            Optional<ClientExpediteur> otherClient = clientExpediteurRepository.findByEmail(clientExpediteurDTO.getEmail());
+            if (otherClient.isPresent()) {
+                throw new InvalidDataException("Cet email est déjà utilisé par un autre compte.");
+            }
+        }
 
         existingClient.setNom(clientExpediteurDTO.getNom());
         existingClient.setPrenom(clientExpediteurDTO.getPrenom());

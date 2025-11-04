@@ -4,13 +4,14 @@ import com.smartlogi.sdms.dto.ColisDTO;
 import com.smartlogi.sdms.dto.StatistiquesTourneeDTO;
 import com.smartlogi.sdms.entity.enumeration.Priorite;
 import com.smartlogi.sdms.entity.enumeration.StatutColis;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ColisService {
 
 
-    ColisDTO creerDemandeLivraison(ColisDTO colisDTO);
+    ColisDTO creerDemandeLivraison(@Valid ColisDTO colisDTO);
 
 
     ColisDTO update(String id, ColisDTO colisDTO);
