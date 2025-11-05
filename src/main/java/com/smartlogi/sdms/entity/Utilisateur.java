@@ -18,9 +18,7 @@ import java.io.Serializable;
 public abstract class Utilisateur implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", updatable = false, nullable = false)
-    @JdbcTypeCode(SqlTypes.UUID) // 2. Indique à Hibernate de le stocker comme type UUID natif en BDD
-    private String id; // 3. Le type en Java est String
+    private String id;
     @Column(name = "nom")
     private String nom;
 
