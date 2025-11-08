@@ -20,7 +20,7 @@ public class ColisDTO {
     @Positive(message = "Le poids total doit être positif")
     private Double poidsTotal;
 
-    @NotNull(message = "Le statut est obligatoire")
+    //@NotNull. Le service s'en chargera.
     private StatutColis statut;
 
     @NotNull(message = "La priorité est obligatoire")
