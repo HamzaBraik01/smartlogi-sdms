@@ -3,6 +3,9 @@ package com.smartlogi.sdms.controller;
 import com.smartlogi.sdms.dto.ProduitDTO;
 import com.smartlogi.sdms.service.interfaces.ProduitService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -24,6 +27,10 @@ public class ProduitController {
     }
 
     @Operation(summary = "Créer un nouveau produit")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Produit créé avec succès"),
+            @ApiResponse(responseCode = "400", description = "Données de produit invalides (ex: nom manquant, prix négatif)")
+    })
     @PostMapping
     public ResponseEntity<ProduitDTO> createProduit(@Valid @RequestBody ProduitDTO produitDTO) {
         ProduitDTO savedProduit = produitService.save(produitDTO);
@@ -33,29 +40,46 @@ public class ProduitController {
     }
 
     @Operation(summary = "Récupérer un produit par son ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Produit trouvé"),
+            @ApiResponse(responseCode = "404", description = "Produit non trouvé avec cet ID")
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<ProduitDTO> getProduitById(@PathVariable String id) {
+    public ResponseEntity<ProduitDTO> getProduitById(@Parameter(description = "ID (String/UUID) du produit à rechercher") @PathVariable String id) {
         ProduitDTO produit = produitService.findById(id);
         return ResponseEntity.ok(produit);
     }
 
     @Operation(summary = "Récupérer la liste paginée de tous les produits")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Liste paginée des produits")
+    })
     @GetMapping
-    public ResponseEntity<Page<ProduitDTO>> getAllProduits(Pageable pageable) {
+    public ResponseEntity<Page<ProduitDTO>> getAllProduits(@Parameter(description = "Paramètres de pagination (page, size, sort)") Pageable pageable) {
         Page<ProduitDTO> produits = produitService.findAll(pageable);
         return ResponseEntity.ok(produits);
     }
 
     @Operation(summary = "Mettre à jour un produit existant")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Produit mis à jour avec succès"),
+            @ApiResponse(responseCode = "400", description = "Données de produit invalides"),
+            @ApiResponse(responseCode = "404", description = "Produit non trouvé avec cet ID")
+    })
     @PutMapping("/{id}")
-    public ResponseEntity<ProduitDTO> updateProduit(@PathVariable String id, @Valid @RequestBody ProduitDTO produitDTO) {
+    public ResponseEntity<ProduitDTO> updateProduit(@Parameter(description = "ID (String/UUID) du produit à mettre à jour") @PathVariable String id, @Valid @RequestBody ProduitDTO produitDTO) {
         ProduitDTO updatedProduit = produitService.update(id, produitDTO);
         return ResponseEntity.ok(updatedProduit);
     }
 
     @Operation(summary = "Supprimer un produit par son ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Produit supprimé avec succès"),
+            @ApiResponse(responseCode = "404", description = "Produit non trouvé avec cet ID"),
+            @ApiResponse(responseCode = "409", description = "Conflit : Le produit est utilisé dans un ou plusieurs colis (contrainte FK)")
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduit(@PathVariable String id) {
+    public ResponseEntity<Void> deleteProduit(@Parameter(description = "ID (String/UUID) du produit à supprimer") @PathVariable String id) {
         produitService.delete(id);
         return ResponseEntity.noContent().build();
     }

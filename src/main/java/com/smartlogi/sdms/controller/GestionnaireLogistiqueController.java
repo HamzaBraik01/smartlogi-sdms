@@ -9,6 +9,8 @@ import com.smartlogi.sdms.service.interfaces.GestionnaireLogistiqueService;
 import com.smartlogi.sdms.service.interfaces.HistoriqueLivraisonService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +37,10 @@ public class GestionnaireLogistiqueController {
 
     @Operation(summary = "Assigner un colis à un livreur",
             description = "US Gestionnaire (SDMS-30)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Assignation réussie"),
+            @ApiResponse(responseCode = "404", description = "Colis ou Livreur non trouvé")
+    })
     @PatchMapping("/colis/{colisId}/assigner/{livreurId}")
     public ResponseEntity<ColisDTO> assignerColis(
             @Parameter(description = "ID du colis à assigner") @PathVariable String colisId,
@@ -46,6 +52,9 @@ public class GestionnaireLogistiqueController {
 
     @Operation(summary = "Recherche globale (Colis, Clients, Livreurs)",
             description = "US Gestionnaire (SDMS-32)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Résultats de la recherche (peuvent être vides)")
+    })
     @GetMapping("/recherche")
     public ResponseEntity<GlobalSearchResponseDTO> rechercher(
             @Parameter(description = "Terme à rechercher (nom, email, ville, n° de suivi...)")
@@ -57,6 +66,9 @@ public class GestionnaireLogistiqueController {
 
     @Operation(summary = "Obtenir les statistiques des tournées",
             description = "US Gestionnaire (SDMS-33). Calcule le poids/nb colis par livreur/zone.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Statistiques calculées")
+    })
     @GetMapping("/statistiques")
     public ResponseEntity<StatistiquesTourneeDTO> getStatistiques() {
         return ResponseEntity.ok(gestionnaireLogistiqueService.getStatistiquesTournees());
@@ -64,6 +76,10 @@ public class GestionnaireLogistiqueController {
 
     @Operation(summary = "Consulter l'historique complet d'un colis",
             description = "US Gestionnaire (SDMS-33)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Historique du colis (trié du plus récent au plus ancien)"),
+            @ApiResponse(responseCode = "404", description = "Colis non trouvé") // (via le service)
+    })
     @GetMapping("/colis/{colisId}/historique")
     public ResponseEntity<List<HistoriqueLivraisonDTO>> getHistoriqueColis(
             @Parameter(description = "ID du colis à inspecter") @PathVariable String colisId) {
