@@ -1,18 +1,15 @@
 package com.smartlogi.sdms.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class StatistiqueLivreurDTO {
     private String livreurId;
-    private String livreurNom; // Pratique pour l'affichage
+    private String livreurNom;
     private long nombreColis;
     private double poidsTotal;
-
-    public StatistiqueLivreurDTO(String livreurId, String livreurNom, long nombreColis, double poidsTotal) {
-        this.livreurId = livreurId;
-        this.livreurNom = livreurNom;
-        this.nombreColis = nombreColis;
-        this.poidsTotal = poidsTotal;
-    }
 }
