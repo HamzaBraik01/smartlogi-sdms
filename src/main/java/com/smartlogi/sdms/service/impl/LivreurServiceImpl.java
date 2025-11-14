@@ -3,6 +3,7 @@ package com.smartlogi.sdms.service.impl;
 import com.smartlogi.sdms.dto.LivreurDTO;
 import com.smartlogi.sdms.entity.Livreur;
 import com.smartlogi.sdms.entity.Zone;
+import com.smartlogi.sdms.exception.InvalidDataException;
 import com.smartlogi.sdms.exception.ResourceNotFoundException;
 import com.smartlogi.sdms.mapper.LivreurMapper;
 import com.smartlogi.sdms.repository.LivreurRepository;
@@ -39,6 +40,12 @@ public class LivreurServiceImpl implements LivreurService {
     @Override
     public LivreurDTO save(LivreurDTO livreurDTO) {
         log.info("Création d'un nouveau livreur : {}", livreurDTO.getEmail());
+
+        // Vérifier si l'email existe déjà
+        if (livreurRepository.findByEmail(livreurDTO.getEmail()).isPresent()) {
+            throw new InvalidDataException("Un livreur avec cet email existe déjà : " + livreurDTO.getEmail());
+        }
+
         Livreur livreur = livreurMapper.toEntity(livreurDTO);
 
 

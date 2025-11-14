@@ -2,6 +2,7 @@ package com.smartlogi.sdms.service.impl;
 
 import com.smartlogi.sdms.dto.DestinataireDTO;
 import com.smartlogi.sdms.entity.Destinataire;
+import com.smartlogi.sdms.exception.InvalidDataException;
 import com.smartlogi.sdms.exception.ResourceNotFoundException;
 import com.smartlogi.sdms.mapper.DestinataireMapper;
 import com.smartlogi.sdms.repository.DestinataireRepository;
@@ -34,6 +35,12 @@ public class DestinataireServiceImpl implements DestinataireService {
     @Override
     public DestinataireDTO save(DestinataireDTO destinataireDTO) {
         log.info("Création d'un nouveau destinataire : {}", destinataireDTO.getEmail());
+
+        // Vérifier si l'email existe déjà
+        if (destinataireRepository.findByEmail(destinataireDTO.getEmail()).isPresent()) {
+            throw new InvalidDataException("Un destinataire avec cet email existe déjà : " + destinataireDTO.getEmail());
+        }
+
         Destinataire dest = destinataireMapper.toEntity(destinataireDTO);
         // (Voir note sécurité sur le mot de passe dans ClientExpediteurServiceImpl)
         dest = destinataireRepository.save(dest);
