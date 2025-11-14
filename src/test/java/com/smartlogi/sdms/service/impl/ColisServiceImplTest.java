@@ -113,7 +113,8 @@ class ColisServiceImplTest {
         verify(clientExpediteurRepository, times(1)).existsById("client-1");
         verify(destinataireRepository, times(1)).existsById("dest-1");
 
-        verify(colisProduitRepository, times(1)).saveAll(anyList());
+        // Note: colisProduitRepository.saveAll() n'est plus appelé car les ColisProduit
+        // sont sauvegardés automatiquement via CascadeType.ALL sur la relation
 
         verify(colisRepository, times(2)).save(colis_entity);
 
