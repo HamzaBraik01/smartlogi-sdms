@@ -36,3 +36,8 @@ command.txt
 # Log files
 *.log
 logs/
+.env
+docs/TESTS_CONTROLLER_CLIENT_EXPEDITEUR.md
+docs/TESTS_CONTROLLERS_COMPLET.md
+
+

@@ -110,9 +110,10 @@ public class ColisServiceImpl implements ColisService {
             cp.setProduit(produit);
             cp.setQuantite(produitDto.getQuantite());
             produitsDuColis.add(cp);
+            // Ajouter à la collection du colis pour maintenir la cohérence bidirectionnelle
+            savedColis.getColisProduits().add(cp);
         }
 
-        colisProduitRepository.saveAll(produitsDuColis);
         savedColis.setPoidsTotal(poidsTotalCalcule);
         Colis colisFinal = colisRepository.save(savedColis);
 
@@ -122,6 +123,8 @@ public class ColisServiceImpl implements ColisService {
         historique.setStatut(StatutColis.CREE);
         historique.setCommentaire("Demande de livraison créée avec " + produitsDuColis.size() + " produit(s).");
         historiqueLivraisonRepository.save(historique);
+        // Ajouter à la collection du colis pour maintenir la cohérence bidirectionnelle
+        colisFinal.getHistoriqueLivraisons().add(historique);
 
         log.info("Colis créé avec succès ({} produits, {} kg)", produitsDuColis.size(), poidsTotalCalcule);
 
@@ -249,6 +252,9 @@ public class ColisServiceImpl implements ColisService {
         historique.setCommentaire(commentaire);
 
         historiqueLivraisonRepository.save(historique);
+        // Ajouter à la collection du colis pour maintenir la cohérence bidirectionnelle
+        updatedColis.getHistoriqueLivraisons().add(historique);
+
         log.info("Statut du colis ID {} mis à jour à {} et historique créé.", updatedColis.getId(), newStatut);
 
         return colisMapper.toDto(updatedColis);
