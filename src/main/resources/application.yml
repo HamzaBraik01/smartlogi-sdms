@@ -25,3 +25,10 @@ springdoc:
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
 
+# ==== JWT / Security (valeurs par défaut; remplacer en prod) ====
+security:
+  jwt:
+    # Secret peut être en UTF-8 ou base64; en prod, préférer base64 et une valeur forte
+    secret: change-me-change-me-change-me-change-me-32-bytes
+    # Durée de validité en millisecondes (ici 24h)
+    expiration-ms: 86400000
