@@ -40,9 +40,7 @@ public class JwtUtils {
         this.jwtExpirationMs = jwtExpirationMs;
     }
 
-    // =====================
-    //      GENERATION
-    // =====================
+
 
 
     public String generateToken(String subject) {
@@ -64,14 +62,11 @@ public class JwtUtils {
                 .compact();
     }
 
-    // =====================
-    //      VALIDATION
-    // =====================
+
 
 
     public boolean validateToken(String token) {
         try {
-            // parseClaimsJws lance une exception si signature invalide/expiré/mal formé
             extractAllClaims(token);
             return true;
         } catch (Exception ex) {
@@ -91,9 +86,7 @@ public class JwtUtils {
         }
     }
 
-    // =====================
-    //   EXTRACTION CLAIMS
-    // =====================
+
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -121,9 +114,7 @@ public class JwtUtils {
         return expiration.before(new Date());
     }
 
-    // =====================
-    //       KEY HANDLING
-    // =====================
+
 
     private Key getSigningKey() {
         byte[] keyBytes = decodeSecretToBytes(jwtSecret);
@@ -135,7 +126,6 @@ public class JwtUtils {
     }
 
     private static byte[] decodeSecretToBytes(String secret) {
-        // Essaye d'abord Base64, sinon utilise les bytes UTF-8 bruts
         try {
             return Base64.getDecoder().decode(secret);
         } catch (IllegalArgumentException e) {
