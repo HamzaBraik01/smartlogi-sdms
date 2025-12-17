@@ -138,7 +138,6 @@ public class JwtUtils {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             return md.digest(input);
         } catch (NoSuchAlgorithmException e) {
-            // Ne devrait jamais arriver sur la JVM
             throw new IllegalStateException("SHA-256 non disponible", e);
         }
     }
