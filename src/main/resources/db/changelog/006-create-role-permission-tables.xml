@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- ============================================== -->
+    <!-- Migration: Création des tables Role et Permission -->
+    <!-- Pour l'évolution vers la gestion dynamique des permissions -->
+    <!-- ============================================== -->
+
+    <!-- Table Role -->
+    <changeSet id="006-create-role-table" author="smartlogi">
+        <createTable tableName="role">
+            <column name="id" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="nom" type="VARCHAR(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="actif" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <rollback>
+            <dropTable tableName="role"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Table Permission -->
+    <changeSet id="006-create-permission-table" author="smartlogi">
+        <createTable tableName="permission">
+            <column name="id" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="nom" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="ressource" type="VARCHAR(50)"/>
+            <column name="action" type="VARCHAR(20)"/>
+            <column name="actif" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <rollback>
+            <dropTable tableName="permission"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Table de liaison Role-Permission (Many-to-Many) -->
+    <changeSet id="006-create-role-permission-table" author="smartlogi">
+        <createTable tableName="role_permission">
+            <column name="role_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="permission_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="role_permission"
+                       columnNames="role_id, permission_id"
+                       constraintName="pk_role_permission"/>
+
+        <addForeignKeyConstraint baseTableName="role_permission"
+                                 baseColumnNames="role_id"
+                                 constraintName="fk_role_permission_role"
+                                 referencedTableName="role"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint baseTableName="role_permission"
+                                 baseColumnNames="permission_id"
+                                 constraintName="fk_role_permission_permission"
+                                 referencedTableName="permission"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+
+        <rollback>
+            <dropTable tableName="role_permission"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Index pour améliorer les performances -->
+    <changeSet id="006-create-indexes" author="smartlogi">
+        <createIndex tableName="role" indexName="idx_role_nom">
+            <column name="nom"/>
+        </createIndex>
+        <createIndex tableName="permission" indexName="idx_permission_nom">
+            <column name="nom"/>
+        </createIndex>
+        <createIndex tableName="permission" indexName="idx_permission_ressource">
+            <column name="ressource"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Données initiales: Rôles par défaut -->
+    <changeSet id="006-insert-default-roles" author="smartlogi">
+        <insert tableName="role">
+            <column name="id" value="role-manager-001"/>
+            <column name="nom" value="MANAGER"/>
+            <column name="description" value="Gestionnaire logistique - Accès complet"/>
+            <column name="actif" valueBoolean="true"/>
+        </insert>
+        <insert tableName="role">
+            <column name="id" value="role-delivery-001"/>
+            <column name="nom" value="DELIVERY"/>
+            <column name="description" value="Livreur - Accès à ses colis assignés"/>
+            <column name="actif" valueBoolean="true"/>
+        </insert>
+        <insert tableName="role">
+            <column name="id" value="role-client-001"/>
+            <column name="nom" value="CLIENT"/>
+            <column name="description" value="Client expéditeur - Création et suivi de ses colis"/>
+            <column name="actif" valueBoolean="true"/>
+        </insert>
+        <insert tableName="role">
+            <column name="id" value="role-admin-001"/>
+            <column name="nom" value="ADMIN"/>
+            <column name="description" value="Administrateur - Gestion des rôles et permissions"/>
+            <column name="actif" valueBoolean="true"/>
+        </insert>
+    </changeSet>
+
+    <!-- Données initiales: Permissions -->
+    <changeSet id="006-insert-default-permissions" author="smartlogi">
+        <!-- Permissions COLIS -->
+        <insert tableName="permission">
+            <column name="id" value="perm-colis-create"/>
+            <column name="nom" value="COLIS_CREATE"/>
+            <column name="description" value="Créer un colis"/>
+            <column name="ressource" value="COLIS"/>
+            <column name="action" value="CREATE"/>
+        </insert>
+        <insert tableName="permission">
+            <column name="id" value="perm-colis-read"/>
+            <column name="nom" value="COLIS_READ"/>
+            <column name="description" value="Lire les colis"/>
+            <column name="ressource" value="COLIS"/>
+            <column name="action" value="READ"/>
+        </insert>
+        <insert tableName="permission">
+            <column name="id" value="perm-colis-update"/>
+            <column name="nom" value="COLIS_UPDATE"/>
+            <column name="description" value="Modifier un colis"/>
+            <column name="ressource" value="COLIS"/>
+            <column name="action" value="UPDATE"/>
+        </insert>
+        <insert tableName="permission">
+            <column name="id" value="perm-colis-delete"/>
+            <column name="nom" value="COLIS_DELETE"/>
+            <column name="description" value="Supprimer un colis"/>
+            <column name="ressource" value="COLIS"/>
+            <column name="action" value="DELETE"/>
+        </insert>
+        <insert tableName="permission">
+            <column name="id" value="perm-colis-status"/>
+            <column name="nom" value="COLIS_UPDATE_STATUS"/>
+            <column name="description" value="Mettre à jour le statut d'un colis"/>
+            <column name="ressource" value="COLIS"/>
+            <column name="action" value="UPDATE_STATUS"/>
+        </insert>
+
+        <!-- Permissions LIVREUR -->
+        <insert tableName="permission">
+            <column name="id" value="perm-livreur-manage"/>
+            <column name="nom" value="LIVREUR_MANAGE"/>
+            <column name="description" value="Gestion complète des livreurs"/>
+            <column name="ressource" value="LIVREUR"/>
+            <column name="action" value="MANAGE"/>
+        </insert>
+
+        <!-- Permissions ZONE -->
+        <insert tableName="permission">
+            <column name="id" value="perm-zone-manage"/>
+            <column name="nom" value="ZONE_MANAGE"/>
+            <column name="description" value="Gestion complète des zones"/>
+            <column name="ressource" value="ZONE"/>
+            <column name="action" value="MANAGE"/>
+        </insert>
+
+        <!-- Permissions STATISTIQUES -->
+        <insert tableName="permission">
+            <column name="id" value="perm-stats-view"/>
+            <column name="nom" value="STATS_VIEW"/>
+            <column name="description" value="Consulter les statistiques"/>
+            <column name="ressource" value="STATISTIQUES"/>
+            <column name="action" value="READ"/>
+        </insert>
+
+        <!-- Permissions ADMIN -->
+        <insert tableName="permission">
+            <column name="id" value="perm-user-manage"/>
+            <column name="nom" value="USER_MANAGE"/>
+            <column name="description" value="Gestion des utilisateurs"/>
+            <column name="ressource" value="USER"/>
+            <column name="action" value="MANAGE"/>
+        </insert>
+        <insert tableName="permission">
+            <column name="id" value="perm-role-manage"/>
+            <column name="nom" value="ROLE_MANAGE"/>
+            <column name="description" value="Gestion des rôles"/>
+            <column name="ressource" value="ROLE"/>
+            <column name="action" value="MANAGE"/>
+        </insert>
+        <insert tableName="permission">
+            <column name="id" value="perm-permission-manage"/>
+            <column name="nom" value="PERMISSION_MANAGE"/>
+            <column name="description" value="Gestion des permissions"/>
+            <column name="ressource" value="PERMISSION"/>
+            <column name="action" value="MANAGE"/>
+        </insert>
+    </changeSet>
+
+    <!-- Liaison Role-Permission: Permissions par défaut pour chaque rôle -->
+    <changeSet id="006-assign-default-permissions" author="smartlogi">
+        <!-- MANAGER: Toutes les permissions sauf ADMIN -->
+        <insert tableName="role_permission">
+            <column name="role_id" value="role-manager-001"/>
+            <column name="permission_id" value="perm-colis-create"/>
+        </insert>
+        <insert tableName="role_permission">
+            <column name="role_id" value="role-manager-001"/>
+            <column name="permission_id" value="perm-colis-read"/>
+        </insert>
+        <insert tableName="role_permission">
+            <column name="role_id" value="role-manager-001"/>
+            <column name="permission_id" value="perm-colis-update"/>
+        </insert>
+        <insert tableName="role_permission">
+            <column name="role_id" value="role-manager-001"/>
+            <column name="permission_id" value="perm-colis-delete"/>
+        </insert>
+        <insert tableName="role_permission">
+            <column name="role_id" value="role-manager-001"/>
+            <column name="permission_id" value="perm-colis-status"/>
+        </insert>
+        <insert tableName="role_permission">
+            <column name="role_id" value="role-manager-001"/>
+            <column name="permission_id" value="perm-livreur-manage"/>
+        </insert>
+        <insert tableName="role_permission">
+            <column name="role_id" value="role-manager-001"/>
+            <column name="permission_id" value="perm-zone-manage"/>
+        </insert>
+        <insert tableName="role_permission">
+            <column name="role_id" value="role-manager-001"/>
+            <column name="permission_id" value="perm-stats-view"/>
+        </insert>
+
+        <!-- DELIVERY: Lire colis + Mettre à jour statut -->
+        <insert tableName="role_permission">
+            <column name="role_id" value="role-delivery-001"/>
+            <column name="permission_id" value="perm-colis-read"/>
+        </insert>
+        <insert tableName="role_permission">
+            <column name="role_id" value="role-delivery-001"/>
+            <column name="permission_id" value="perm-colis-status"/>
+        </insert>
+
+        <!-- CLIENT: Créer + Lire colis -->
+        <insert tableName="role_permission">
+            <column name="role_id" value="role-client-001"/>
+            <column name="permission_id" value="perm-colis-create"/>
+        </insert>
+        <insert tableName="role_permission">
+            <column name="role_id" value="role-client-001"/>
+            <column name="permission_id" value="perm-colis-read"/>
+        </insert>
+
+        <!-- ADMIN: Toutes les permissions -->
+        <insert tableName="role_permission">
+            <column name="role_id" value="role-admin-001"/>
+            <column name="permission_id" value="perm-user-manage"/>
+        </insert>
+        <insert tableName="role_permission">
+            <column name="role_id" value="role-admin-001"/>
+            <column name="permission_id" value="perm-role-manage"/>
+        </insert>
+        <insert tableName="role_permission">
+            <column name="role_id" value="role-admin-001"/>
+            <column name="permission_id" value="perm-permission-manage"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
+

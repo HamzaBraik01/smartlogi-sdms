@@ -10,7 +10,7 @@
     <include file="db/changelog/003-add-constraints.xml"/>
     <include file="db/changelog/004-insert-data.xml"/>
     <include file="db/changelog/005-migrate-uuid-to-varchar.xml"/>
-
-
+    <include file="db/changelog/006-create-role-permission-tables.xml"/>
+    <include file="db/changelog/007-create-admin-user.xml"/>
 
 </databaseChangeLog>
