@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/gestion")
 @Tag(name = "Gestion (Manager)", description = "API pour les opérations du gestionnaire logistique")
+@PreAuthorize("hasRole('MANAGER') or hasAuthority('STATS_VIEW')")
 public class GestionnaireLogistiqueController {
 
     private final GestionnaireLogistiqueService gestionnaireLogistiqueService;

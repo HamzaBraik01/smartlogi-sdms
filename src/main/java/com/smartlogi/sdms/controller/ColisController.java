@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -35,6 +36,7 @@ public class ColisController {
             @ApiResponse(responseCode = "201", description = "Colis créé avec succès"),
             @ApiResponse(responseCode = "400", description = "Données invalides (ex: produit non trouvé, client manquant, validation échouée)")
     })
+    @PreAuthorize("hasAnyRole('MANAGER', 'CLIENT') or hasAuthority('COLIS_CREATE')")
     @PostMapping
     public ResponseEntity<ColisDTO> createColis(@Valid @RequestBody ColisDTO colisDTO) {
         ColisDTO savedColis = colisService.creerDemandeLivraison(colisDTO);
@@ -48,6 +50,7 @@ public class ColisController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Liste paginée des colis filtrés")
     })
+    @PreAuthorize("hasRole('MANAGER') or hasAuthority('COLIS_READ')")
     @GetMapping
     public ResponseEntity<Page<ColisDTO>> filterColis(
             @Parameter(description = "Filtrer par statut") @RequestParam(required = false) StatutColis statut,
@@ -66,6 +69,7 @@ public class ColisController {
             @ApiResponse(responseCode = "200", description = "Colis trouvé"),
             @ApiResponse(responseCode = "404", description = "Colis non trouvé avec cet ID")
     })
+    @PreAuthorize("@colisSecurityService.canAccess(#id, authentication)")
     @GetMapping("/{id}")
     public ResponseEntity<ColisDTO> getColisById(@Parameter(description = "ID (N° de suivi) du colis") @PathVariable String id) {
         return ResponseEntity.ok(colisService.findById(id));
@@ -78,6 +82,7 @@ public class ColisController {
             @ApiResponse(responseCode = "400", description = "Transition de statut invalide (ex: LIVRE -> EN_STOCK)"),
             @ApiResponse(responseCode = "404", description = "Colis non trouvé")
     })
+    @PreAuthorize("@colisSecurityService.canUpdateStatus(#colisId, authentication)")
     @PatchMapping("/{colisId}/statut")
     public ResponseEntity<ColisDTO> updateStatut(@Parameter(description = "ID du colis à mettre à jour")
             @PathVariable String colisId,
@@ -97,6 +102,7 @@ public class ColisController {
             @ApiResponse(responseCode = "200", description = "Liste paginée des colis du client"),
             @ApiResponse(responseCode = "404", description = "Client non trouvé")
     })
+    @PreAuthorize("hasRole('MANAGER') or @colisSecurityService.isCurrentUser(#clientId, authentication)")
     @GetMapping("/client/{clientId}")
     public ResponseEntity<Page<ColisDTO>> getColisByClient(@Parameter(description = "ID du client expéditeur") @PathVariable String clientId, Pageable pageable) {
         return ResponseEntity.ok(colisService.findColisByClientExpediteur(clientId, pageable));
@@ -107,6 +113,7 @@ public class ColisController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Liste paginée des colis du destinataire")
     })
+    @PreAuthorize("hasRole('MANAGER') or @colisSecurityService.isCurrentUser(#destinataireId, authentication)")
     @GetMapping("/destinataire/{destinataireId}")
     public ResponseEntity<Page<ColisDTO>> getColisByDestinataire(@Parameter(description = "ID du destinataire") @PathVariable String destinataireId, Pageable pageable) {
         return ResponseEntity.ok(colisService.findColisByDestinataire(destinataireId, pageable));
@@ -117,6 +124,7 @@ public class ColisController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Liste paginée des colis du livreur (triée par priorité)")
     })
+    @PreAuthorize("hasRole('MANAGER') or @colisSecurityService.isCurrentUser(#livreurId, authentication)")
     @GetMapping("/livreur/{livreurId}")
     public ResponseEntity<Page<ColisDTO>> getColisByLivreur(@Parameter(description = "ID du livreur") @PathVariable String livreurId, Pageable pageable) {
         return ResponseEntity.ok(colisService.findColisByLivreur(livreurId, pageable));
@@ -128,6 +136,7 @@ public class ColisController {
             @ApiResponse(responseCode = "204", description = "Colis supprimé avec succès"),
             @ApiResponse(responseCode = "404", description = "Colis non trouvé")
     })
+    @PreAuthorize("hasRole('MANAGER') or hasAuthority('COLIS_DELETE')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteColis(@Parameter(description = "ID du colis à supprimer") @PathVariable String id) {
         colisService.delete(id);

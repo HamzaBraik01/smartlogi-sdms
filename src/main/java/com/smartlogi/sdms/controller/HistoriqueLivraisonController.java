@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +33,7 @@ public class HistoriqueLivraisonController {
             @ApiResponse(responseCode = "200", description = "Parcel history (sorted newest to oldest)"),
             @ApiResponse(responseCode = "404", description = "Parcel not found")
     })
+    @PreAuthorize("@colisSecurityService.canAccess(#id, authentication)")
     @GetMapping("/colis/{id}/historique")
     public ResponseEntity<List<HistoriqueLivraisonDTO>> getHistoriqueParColisId(
             @Parameter(description = "ID (Tracking Number) of the parcel") @PathVariable String id) {

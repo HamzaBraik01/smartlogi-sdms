@@ -11,12 +11,14 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 
 @RestController
 @RequestMapping("/api/v1/zones")
 @Tag(name = "Zones", description = "API pour la gestion des zones géographiques")
+@PreAuthorize("hasRole('MANAGER') or hasAuthority('ZONE_MANAGE')")
 public class ZoneController {
 
     private final ZoneService zoneService;
