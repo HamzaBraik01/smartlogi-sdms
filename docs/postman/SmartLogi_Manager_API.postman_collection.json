@@ -1,0 +1,1062 @@
+{
+	"info": {
+		"_postman_id": "smartlogi-manager-api-collection",
+		"name": "SmartLogi Manager API - Tests Role MANAGER",
+		"description": "Collection Postman pour tester les endpoints accessibles au role MANAGER (Gestionnaire Logistique)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "manager_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "colis_id",
+			"value": "colis-test-001",
+			"type": "string"
+		},
+		{
+			"key": "livreur_id",
+			"value": "user-livreur-001",
+			"type": "string"
+		},
+		{
+			"key": "zone_id",
+			"value": "zone-casa-001",
+			"type": "string"
+		},
+		{
+			"key": "client_id",
+			"value": "user-client-001",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Authentification Manager",
+			"item": [
+				{
+					"name": "Login Manager - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response contains token', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.expect(jsonData.token).to.not.be.empty;",
+									"});",
+									"",
+									"pm.test('User has MANAGER role', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.role).to.equal('MANAGER');",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('manager_token', jsonData.token);",
+									"console.log('Token Manager sauvegarde avec succes');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"manager@smartlogi.com\",\n    \"password\": \"Admin@123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Connexion avec le compte Manager. Token JWT sauvegarde automatiquement."
+					},
+					"response": []
+				},
+				{
+					"name": "Login Manager - Invalid Password (401)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401', function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test('Error message present', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"manager@smartlogi.com\",\n    \"password\": \"wrongpassword\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Test authentification avec mauvais mot de passe"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Gestion des Colis (Acces Autorise)",
+			"item": [
+				{
+					"name": "Lister tous les Colis - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is paginated', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('content');",
+									"    pm.expect(jsonData).to.have.property('totalElements');",
+									"});",
+									"",
+									"pm.test('Manager has COLIS_READ permission', function () {",
+									"    pm.response.to.have.status(200);",
+									"    console.log('MANAGER peut lire tous les colis');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis?page=0&size=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis"],
+							"query": [
+								{ "key": "page", "value": "0" },
+								{ "key": "size", "value": "10" }
+							]
+						},
+						"description": "Manager peut lister tous les colis (hasRole MANAGER)"
+					},
+					"response": []
+				},
+				{
+					"name": "Filtrer Colis par Statut - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('All colis have EN_ATTENTE status', function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.content && jsonData.content.length > 0) {",
+									"        jsonData.content.forEach(function(colis) {",
+									"            pm.expect(colis.statut).to.equal('EN_ATTENTE');",
+									"        });",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis?statut=EN_ATTENTE&page=0&size=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis"],
+							"query": [
+								{ "key": "statut", "value": "EN_ATTENTE" },
+								{ "key": "page", "value": "0" },
+								{ "key": "size", "value": "10" }
+							]
+						},
+						"description": "Manager peut filtrer les colis par statut"
+					},
+					"response": []
+				},
+				{
+					"name": "Filtrer Colis par Zone - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis?zoneId={{zone_id}}&page=0&size=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis"],
+							"query": [
+								{ "key": "zoneId", "value": "{{zone_id}}" },
+								{ "key": "page", "value": "0" },
+								{ "key": "size", "value": "10" }
+							]
+						},
+						"description": "Manager peut filtrer les colis par zone"
+					},
+					"response": []
+				},
+				{
+					"name": "Recuperer Colis par ID - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Colis has expected properties', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('reference');",
+									"    pm.expect(jsonData).to.have.property('statut');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/{{colis_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "{{colis_id}}"]
+						},
+						"description": "Manager peut voir n'importe quel colis"
+					},
+					"response": []
+				},
+				{
+					"name": "Creer un Colis - 201",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Colis created with reference', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('reference');",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.id) {",
+									"    pm.collectionVariables.set('new_colis_id', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"description\": \"Colis test cree par Manager\",\n    \"poids\": 5.5,\n    \"priorite\": \"NORMALE\",\n    \"expediteurId\": \"user-client-001\",\n    \"destinataireNom\": \"Test Destinataire\",\n    \"destinataireAdresse\": \"123 Rue Test, Casablanca\",\n    \"destinataireTelephone\": \"+212600000099\",\n    \"zoneId\": \"zone-casa-001\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis"]
+						},
+						"description": "Manager peut creer des colis (COLIS_CREATE)"
+					},
+					"response": []
+				},
+				{
+					"name": "Supprimer un Colis - 204",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 204', function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									"",
+									"console.log('Manager peut supprimer des colis (COLIS_DELETE)');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/{{new_colis_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "{{new_colis_id}}"]
+						},
+						"description": "Manager peut supprimer des colis"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Gestion des Livreurs (Acces Autorise)",
+			"item": [
+				{
+					"name": "Lister tous les Livreurs - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is paginated', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('content');",
+									"});",
+									"",
+									"console.log('Manager a acces a LIVREUR_MANAGE');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/livreurs?page=0&size=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "livreurs"],
+							"query": [
+								{ "key": "page", "value": "0" },
+								{ "key": "size", "value": "10" }
+							]
+						},
+						"description": "Manager peut lister tous les livreurs"
+					},
+					"response": []
+				},
+				{
+					"name": "Recuperer Livreur par ID - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Livreur has expected properties', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('nom');",
+									"    pm.expect(jsonData).to.have.property('vehicule');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/livreurs/{{livreur_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "livreurs", "{{livreur_id}}"]
+						},
+						"description": "Manager peut voir un livreur par ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Creer un Livreur - 201",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.id) {",
+									"    pm.collectionVariables.set('new_livreur_id', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nom\": \"TestLivreur\",\n    \"prenom\": \"Nouveau\",\n    \"email\": \"test.livreur@smartlogi.com\",\n    \"telephone\": \"+212699999999\",\n    \"password\": \"Livreur@123\",\n    \"vehicule\": \"Scooter Test\",\n    \"zoneId\": \"zone-casa-001\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/livreurs",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "livreurs"]
+						},
+						"description": "Manager peut creer des livreurs"
+					},
+					"response": []
+				},
+				{
+					"name": "Supprimer Livreur - 204",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 204', function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/livreurs/{{new_livreur_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "livreurs", "{{new_livreur_id}}"]
+						},
+						"description": "Manager peut supprimer des livreurs"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Gestion des Zones (Acces Autorise)",
+			"item": [
+				{
+					"name": "Lister toutes les Zones - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is paginated', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('content');",
+									"});",
+									"",
+									"console.log('Manager a acces a ZONE_MANAGE');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/zones?page=0&size=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "zones"],
+							"query": [
+								{ "key": "page", "value": "0" },
+								{ "key": "size", "value": "10" }
+							]
+						},
+						"description": "Manager peut lister toutes les zones"
+					},
+					"response": []
+				},
+				{
+					"name": "Recuperer Zone par ID - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Zone has expected properties', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('nom');",
+									"    pm.expect(jsonData).to.have.property('ville');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/zones/{{zone_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "zones", "{{zone_id}}"]
+						},
+						"description": "Manager peut voir une zone par ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Creer une Zone - 201",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.id) {",
+									"    pm.collectionVariables.set('new_zone_id', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nom\": \"Zone Test Manager\",\n    \"codePostal\": \"99999\",\n    \"ville\": \"Ville Test\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/zones",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "zones"]
+						},
+						"description": "Manager peut creer des zones"
+					},
+					"response": []
+				},
+				{
+					"name": "Supprimer Zone - 204",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 204', function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/zones/{{new_zone_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "zones", "{{new_zone_id}}"]
+						},
+						"description": "Manager peut supprimer des zones"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. Gestion Logistique (Acces Autorise)",
+			"item": [
+				{
+					"name": "Assigner Colis a Livreur - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Colis assigned to livreur', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.livreurId).to.not.be.null;",
+									"});",
+									"",
+									"console.log('Manager peut assigner des colis aux livreurs');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/gestion/colis/{{colis_id}}/assigner/{{livreur_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "gestion", "colis", "{{colis_id}}", "assigner", "{{livreur_id}}"]
+						},
+						"description": "Manager peut assigner un colis a un livreur"
+					},
+					"response": []
+				},
+				{
+					"name": "Recherche Globale - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has search results', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('object');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/gestion/recherche?q=Casablanca",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "gestion", "recherche"],
+							"query": [
+								{ "key": "q", "value": "Casablanca" }
+							]
+						},
+						"description": "Manager peut faire une recherche globale"
+					},
+					"response": []
+				},
+				{
+					"name": "Statistiques Tournees - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Statistics returned', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('object');",
+									"});",
+									"",
+									"console.log('Manager a acces a STATS_VIEW');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/gestion/statistiques",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "gestion", "statistiques"]
+						},
+						"description": "Manager peut consulter les statistiques"
+					},
+					"response": []
+				},
+				{
+					"name": "Historique Colis - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('History is array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/gestion/colis/{{colis_id}}/historique",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "gestion", "colis", "{{colis_id}}", "historique"]
+						},
+						"description": "Manager peut voir l'historique d'un colis"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "6. Tests Acces Refuse (403)",
+			"item": [
+				{
+					"name": "Manager acces Admin Roles - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Manager n a pas acces aux endpoints Admin');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles"]
+						},
+						"description": "Manager ne peut pas acceder a la gestion des roles (ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Manager creer Role - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nom\": \"HACKER_ROLE\",\n    \"description\": \"Tentative non autorisee\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles"]
+						},
+						"description": "Manager ne peut pas creer de roles"
+					},
+					"response": []
+				},
+				{
+					"name": "Manager acces Permissions - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/permissions",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "permissions"]
+						},
+						"description": "Manager ne peut pas voir les permissions (ADMIN only)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "7. Tests Securite",
+			"item": [
+				{
+					"name": "Acces sans Token - 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401 Unauthorized', function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis"]
+						},
+						"description": "Acces sans JWT doit retourner 401"
+					},
+					"response": []
+				},
+				{
+					"name": "Acces avec Token Invalide - 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401 Unauthorized', function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer invalid.token.here"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis"]
+						},
+						"description": "Token invalide doit retourner 401"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
+

@@ -5,13 +5,10 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <!-- ============================================== -->
-    <!-- Migration: Création des tables Role et Permission -->
-    <!-- Pour l'évolution vers la gestion dynamique des permissions -->
-    <!-- ============================================== -->
+
 
     <!-- Table Role -->
-    <changeSet id="006-create-role-table" author="smartlogi">
+    <changeSet id="006-create-role-table" author="Hamza Braik">
         <createTable tableName="role">
             <column name="id" type="VARCHAR(36)">
                 <constraints primaryKey="true" nullable="false"/>
@@ -30,7 +27,7 @@
     </changeSet>
 
     <!-- Table Permission -->
-    <changeSet id="006-create-permission-table" author="smartlogi">
+    <changeSet id="006-create-permission-table" author="Hamza Braik">
         <createTable tableName="permission">
             <column name="id" type="VARCHAR(36)">
                 <constraints primaryKey="true" nullable="false"/>
@@ -51,7 +48,7 @@
     </changeSet>
 
     <!-- Table de liaison Role-Permission (Many-to-Many) -->
-    <changeSet id="006-create-role-permission-table" author="smartlogi">
+    <changeSet id="006-create-role-permission-table" author="Hamza Braik">
         <createTable tableName="role_permission">
             <column name="role_id" type="VARCHAR(36)">
                 <constraints nullable="false"/>
@@ -85,7 +82,7 @@
     </changeSet>
 
     <!-- Index pour améliorer les performances -->
-    <changeSet id="006-create-indexes" author="smartlogi">
+    <changeSet id="006-create-indexes" author="Hamza Braik">
         <createIndex tableName="role" indexName="idx_role_nom">
             <column name="nom"/>
         </createIndex>
@@ -98,7 +95,7 @@
     </changeSet>
 
     <!-- Données initiales: Rôles par défaut -->
-    <changeSet id="006-insert-default-roles" author="smartlogi">
+    <changeSet id="006-insert-default-roles" author="Hamza Braik">
         <insert tableName="role">
             <column name="id" value="role-manager-001"/>
             <column name="nom" value="MANAGER"/>
@@ -126,7 +123,7 @@
     </changeSet>
 
     <!-- Données initiales: Permissions -->
-    <changeSet id="006-insert-default-permissions" author="smartlogi">
+    <changeSet id="006-insert-default-permissions" author="Hamza Braik">
         <!-- Permissions COLIS -->
         <insert tableName="permission">
             <column name="id" value="perm-colis-create"/>
@@ -216,7 +213,7 @@
     </changeSet>
 
     <!-- Liaison Role-Permission: Permissions par défaut pour chaque rôle -->
-    <changeSet id="006-assign-default-permissions" author="smartlogi">
+    <changeSet id="006-assign-default-permissions" author="Hamza Braik">
         <!-- MANAGER: Toutes les permissions sauf ADMIN -->
         <insert tableName="role_permission">
             <column name="role_id" value="role-manager-001"/>

@@ -7,7 +7,7 @@
 
     <changeSet id="001" author="Hamza Braik">
         <createTable tableName="utilisateur">
-            <column name="id" type="UUID">
+            <column name="id" type="VARCHAR(36)">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
 
@@ -24,11 +24,10 @@
             </column>
 
             <column name="adresse" type="VARCHAR(255)"/>
-
             <column name="vehicule" type="VARCHAR(255)"/>
-            <column name="zone_id" type="UUID"/>
-        </createTable>
 
+            <column name="zone_id" type="VARCHAR(36)"/>
+        </createTable>
     </changeSet>
 
 </databaseChangeLog>

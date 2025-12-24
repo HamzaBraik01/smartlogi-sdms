@@ -1,0 +1,790 @@
+{
+	"info": {
+		"_postman_id": "smartlogi-livreur-api-collection",
+		"name": "SmartLogi Livreur API - Tests Role LIVREUR",
+		"description": "Collection Postman pour tester les endpoints accessibles au role LIVREUR (Livreur)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "livreur1_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "livreur2_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "livreur1_id",
+			"value": "user-livreur-001",
+			"type": "string"
+		},
+		{
+			"key": "livreur2_id",
+			"value": "user-livreur-002",
+			"type": "string"
+		},
+		{
+			"key": "colis_livreur1",
+			"value": "colis-test-001",
+			"type": "string"
+		},
+		{
+			"key": "colis_livreur2",
+			"value": "colis-test-003",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Authentification Livreur",
+			"item": [
+				{
+					"name": "Login Livreur 1 - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response contains token', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.expect(jsonData.token).to.not.be.empty;",
+									"});",
+									"",
+									"pm.test('User has LIVREUR role', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.role).to.equal('LIVREUR');",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('livreur1_token', jsonData.token);",
+									"console.log('Token Livreur 1 sauvegarde avec succes');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"livreur1@smartlogi.com\",\n    \"password\": \"Admin@123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Connexion Livreur 1 (Zone Casablanca). Token JWT sauvegarde automatiquement."
+					},
+					"response": []
+				},
+				{
+					"name": "Login Livreur 2 - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('User has LIVREUR role', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.role).to.equal('LIVREUR');",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('livreur2_token', jsonData.token);",
+									"console.log('Token Livreur 2 sauvegarde avec succes');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"livreur2@smartlogi.com\",\n    \"password\": \"Admin@123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Connexion Livreur 2 (Zone Rabat). Token JWT sauvegarde automatiquement."
+					},
+					"response": []
+				},
+				{
+					"name": "Login Livreur - Invalid Password (401)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401', function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test('Error message present', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"livreur1@smartlogi.com\",\n    \"password\": \"wrongpassword\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Test authentification avec mauvais mot de passe"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Acces Colis Assignes (Autorise)",
+			"item": [
+				{
+					"name": "Livreur1 - Voir ses colis assignes - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is paginated', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('content');",
+									"});",
+									"",
+									"console.log('Livreur peut voir ses colis assignes');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{livreur1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/livreur/{{livreur1_id}}?page=0&size=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "livreur", "{{livreur1_id}}"],
+							"query": [
+								{ "key": "page", "value": "0" },
+								{ "key": "size", "value": "10" }
+							]
+						},
+						"description": "Livreur 1 peut voir ses propres colis assignes"
+					},
+					"response": []
+				},
+				{
+					"name": "Livreur1 - Voir un colis assigne - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Colis has expected properties', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('reference');",
+									"    pm.expect(jsonData).to.have.property('statut');",
+									"});",
+									"",
+									"console.log('Livreur peut acceder a un colis qui lui est assigne');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{livreur1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/{{colis_livreur1}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "{{colis_livreur1}}"]
+						},
+						"description": "Livreur 1 peut voir le detail d'un colis qui lui est assigne"
+					},
+					"response": []
+				},
+				{
+					"name": "Livreur1 - Mettre a jour statut colis - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Status updated', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.statut).to.equal('EN_COURS');",
+									"});",
+									"",
+									"console.log('Livreur a la permission COLIS_UPDATE_STATUS');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{livreur1_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"statut\": \"EN_COURS\",\n    \"commentaire\": \"Colis pris en charge par le livreur\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/{{colis_livreur1}}/statut",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "{{colis_livreur1}}", "statut"]
+						},
+						"description": "Livreur peut mettre a jour le statut de ses colis assignes"
+					},
+					"response": []
+				},
+				{
+					"name": "Livreur2 - Voir ses colis assignes - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is paginated', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('content');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{livreur2_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/livreur/{{livreur2_id}}?page=0&size=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "livreur", "{{livreur2_id}}"],
+							"query": [
+								{ "key": "page", "value": "0" },
+								{ "key": "size", "value": "10" }
+							]
+						},
+						"description": "Livreur 2 peut voir ses propres colis assignes"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Tests Acces Refuse (403)",
+			"item": [
+				{
+					"name": "Livreur1 - Voir colis Livreur2 - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Livreur 1 ne peut pas voir les colis de Livreur 2');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{livreur1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/livreur/{{livreur2_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "livreur", "{{livreur2_id}}"]
+						},
+						"description": "Livreur 1 ne peut pas acceder aux colis de Livreur 2"
+					},
+					"response": []
+				},
+				{
+					"name": "Livreur1 - Mettre a jour colis Livreur2 - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Livreur 1 ne peut pas modifier les colis de Livreur 2');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{livreur1_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"statut\": \"LIVRE\",\n    \"commentaire\": \"Tentative non autorisee\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/{{colis_livreur2}}/statut",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "{{colis_livreur2}}", "statut"]
+						},
+						"description": "Livreur 1 ne peut pas modifier le statut des colis de Livreur 2"
+					},
+					"response": []
+				},
+				{
+					"name": "Livreur - Lister tous les colis - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Livreur ne peut pas lister TOUS les colis (MANAGER only)');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{livreur1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis"]
+						},
+						"description": "Livreur ne peut pas lister tous les colis (endpoint Manager)"
+					},
+					"response": []
+				},
+				{
+					"name": "Livreur - Creer un colis - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Livreur ne peut pas creer de colis (CLIENT/MANAGER only)');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{livreur1_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"description\": \"Tentative non autorisee\",\n    \"poids\": 1.0,\n    \"priorite\": \"NORMALE\",\n    \"expediteurId\": \"user-client-001\",\n    \"destinataireNom\": \"Test\",\n    \"destinataireAdresse\": \"123 Rue Test\",\n    \"destinataireTelephone\": \"+212600000000\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis"]
+						},
+						"description": "Livreur ne peut pas creer de colis"
+					},
+					"response": []
+				},
+				{
+					"name": "Livreur - Supprimer un colis - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Livreur ne peut pas supprimer de colis');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{livreur1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/{{colis_livreur1}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "{{colis_livreur1}}"]
+						},
+						"description": "Livreur ne peut pas supprimer de colis"
+					},
+					"response": []
+				},
+				{
+					"name": "Livreur - Acces Livreurs API - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Livreur ne peut pas gerer les livreurs (MANAGER only)');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{livreur1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/livreurs",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "livreurs"]
+						},
+						"description": "Livreur ne peut pas acceder a la gestion des livreurs"
+					},
+					"response": []
+				},
+				{
+					"name": "Livreur - Acces Zones API - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Livreur ne peut pas gerer les zones (MANAGER only)');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{livreur1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/zones",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "zones"]
+						},
+						"description": "Livreur ne peut pas acceder a la gestion des zones"
+					},
+					"response": []
+				},
+				{
+					"name": "Livreur - Acces Gestion API - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Livreur ne peut pas acceder aux statistiques (MANAGER only)');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{livreur1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/gestion/statistiques",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "gestion", "statistiques"]
+						},
+						"description": "Livreur ne peut pas acceder aux statistiques"
+					},
+					"response": []
+				},
+				{
+					"name": "Livreur - Acces Admin API - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Livreur ne peut pas acceder aux endpoints Admin');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{livreur1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles"]
+						},
+						"description": "Livreur ne peut pas acceder a l'administration"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Tests Securite",
+			"item": [
+				{
+					"name": "Acces sans Token - 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401 Unauthorized', function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/livreur/{{livreur1_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "livreur", "{{livreur1_id}}"]
+						},
+						"description": "Acces sans JWT doit retourner 401"
+					},
+					"response": []
+				},
+				{
+					"name": "Acces avec Token Invalide - 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401 Unauthorized', function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer invalid.token.here"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/livreur/{{livreur1_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "livreur", "{{livreur1_id}}"]
+						},
+						"description": "Token invalide doit retourner 401"
+					},
+					"response": []
+				},
+				{
+					"name": "Acces avec Token Expire - 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401 Unauthorized', function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsaXZyZXVyMUBzbWFydGxvZ2kuY29tIiwiaWF0IjoxNjAwMDAwMDAwLCJleHAiOjE2MDAwMDAwMDF9.expired_signature"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/livreur/{{livreur1_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "livreur", "{{livreur1_id}}"]
+						},
+						"description": "Token expire doit retourner 401"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
+

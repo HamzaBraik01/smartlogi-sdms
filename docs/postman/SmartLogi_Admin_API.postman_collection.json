@@ -1,0 +1,1072 @@
+{
+	"info": {
+		"_postman_id": "smartlogi-admin-api-collection",
+		"name": "SmartLogi Admin API - Tests Permissions & Endpoints",
+		"description": "Collection Postman pour tester les permissions et endpoints de l'AdminController",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "admin_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "manager_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "client_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "role_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "permission_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "🔐 Authentification",
+			"item": [
+				{
+					"name": "1. Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test: Vérifier le statut 200",
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test: Vérifier la présence du token",
+									"pm.test('Response contains token', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.expect(jsonData.token).to.not.be.empty;",
+									"});",
+									"",
+									"// Test: Vérifier le rôle ADMIN",
+									"pm.test('User has ADMIN role', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.role).to.equal('ADMIN');",
+									"});",
+									"",
+									"// Sauvegarder le token pour les requêtes suivantes",
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('admin_token', jsonData.token);",
+									"console.log('Token Admin sauvegardé');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@smartlogi.com\",\n    \"password\": \"Admin@123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Connexion avec le compte admin par défaut. Le token JWT sera automatiquement sauvegardé."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Login Manager (Non-Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.token) {",
+									"    pm.collectionVariables.set('manager_token', jsonData.token);",
+									"    console.log('Token Manager sauvegardé');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"manager@smartlogi.com\",\n    \"password\": \"Admin@123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Connexion avec un compte gestionnaire (non-admin) pour tester les restrictions d'accès."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Login Client (Accès limité)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.token) {",
+									"    pm.collectionVariables.set('client_token', jsonData.token);",
+									"    console.log('Token Client sauvegardé');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"client1@smartlogi.com\",\n    \"password\": \"Admin@123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Connexion avec un compte client pour tester les restrictions d'accès."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📋 Gestion des Rôles",
+			"item": [
+				{
+					"name": "1. Créer un Rôle (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Role created with correct data', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.nom).to.equal('TEST_ROLE');",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"});",
+									"",
+									"// Sauvegarder l'ID pour les tests suivants",
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('role_id', jsonData.id);",
+									"console.log('Role ID sauvegardé: ' + jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nom\": \"TEST_ROLE\",\n    \"description\": \"Rôle de test créé via Postman\",\n    \"actif\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles"]
+						},
+						"description": "Crée un nouveau rôle. Nécessite le rôle ADMIN ou l'autorité ROLE_MANAGE."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Lister tous les Rôles",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is paginated', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('content');",
+									"    pm.expect(jsonData).to.have.property('totalElements');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles?page=0&size=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles"],
+							"query": [
+								{ "key": "page", "value": "0" },
+								{ "key": "size", "value": "10" }
+							]
+						},
+						"description": "Récupère la liste paginée de tous les rôles."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Récupérer un Rôle par ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Role has expected properties', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('nom');",
+									"    pm.expect(jsonData).to.have.property('description');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles/{{role_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles", "{{role_id}}"]
+						},
+						"description": "Récupère un rôle par son ID."
+					},
+					"response": []
+				},
+				{
+					"name": "4. Récupérer un Rôle par Nom",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles/by-name/TEST_ROLE",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles", "by-name", "TEST_ROLE"]
+						},
+						"description": "Récupère un rôle par son nom."
+					},
+					"response": []
+				},
+				{
+					"name": "5. Mettre à jour un Rôle",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Role updated', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.description).to.equal('Description mise à jour');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nom\": \"TEST_ROLE\",\n    \"description\": \"Description mise à jour\",\n    \"actif\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles/{{role_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles", "{{role_id}}"]
+						},
+						"description": "Met à jour un rôle existant."
+					},
+					"response": []
+				},
+				{
+					"name": "6. Activer/Désactiver un Rôle",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles/{{role_id}}/active?actif=false",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles", "{{role_id}}", "active"],
+							"query": [
+								{ "key": "actif", "value": "false" }
+							]
+						},
+						"description": "Active ou désactive un rôle."
+					},
+					"response": []
+				},
+				{
+					"name": "7. Supprimer un Rôle",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 204', function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles/{{role_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles", "{{role_id}}"]
+						},
+						"description": "Supprime un rôle."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🔑 Gestion des Permissions",
+			"item": [
+				{
+					"name": "1. Créer une Permission",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Permission created', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.nom).to.equal('TEST_PERMISSION');",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('permission_id', jsonData.id);",
+									"console.log('Permission ID sauvegardé: ' + jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nom\": \"TEST_PERMISSION\",\n    \"description\": \"Permission de test créée via Postman\",\n    \"ressource\": \"TEST\",\n    \"action\": \"READ\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/permissions",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "permissions"]
+						},
+						"description": "Crée une nouvelle permission. Nécessite le rôle ADMIN ou PERMISSION_MANAGE."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Lister toutes les Permissions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is paginated', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('content');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/permissions?page=0&size=20",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "permissions"],
+							"query": [
+								{ "key": "page", "value": "0" },
+								{ "key": "size", "value": "20" }
+							]
+						},
+						"description": "Récupère la liste paginée des permissions."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Récupérer une Permission par ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/permissions/{{permission_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "permissions", "{{permission_id}}"]
+						},
+						"description": "Récupère une permission par son ID."
+					},
+					"response": []
+				},
+				{
+					"name": "4. Permissions par Ressource",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/permissions/by-ressource/COLIS",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "permissions", "by-ressource", "COLIS"]
+						},
+						"description": "Récupère les permissions pour une ressource spécifique."
+					},
+					"response": []
+				},
+				{
+					"name": "5. Mettre à jour une Permission",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nom\": \"TEST_PERMISSION\",\n    \"description\": \"Description mise à jour via Postman\",\n    \"ressource\": \"TEST\",\n    \"action\": \"WRITE\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/permissions/{{permission_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "permissions", "{{permission_id}}"]
+						},
+						"description": "Met à jour une permission existante."
+					},
+					"response": []
+				},
+				{
+					"name": "6. Supprimer une Permission",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 204', function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/permissions/{{permission_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "permissions", "{{permission_id}}"]
+						},
+						"description": "Supprime une permission."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🔗 Associations Rôle-Permission",
+			"item": [
+				{
+					"name": "1. Assigner Permission à Rôle",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles/{{role_id}}/permissions/{{permission_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles", "{{role_id}}", "permissions", "{{permission_id}}"]
+						},
+						"description": "Assigne une permission à un rôle."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Lister Permissions d'un Rôle",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is an array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles/{{role_id}}/permissions",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles", "{{role_id}}", "permissions"]
+						},
+						"description": "Liste toutes les permissions assignées à un rôle."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Assigner Plusieurs Permissions (Batch)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\"perm-colis-read\", \"perm-colis-create\", \"perm-colis-update\"]"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles/{{role_id}}/permissions/batch",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles", "{{role_id}}", "permissions", "batch"]
+						},
+						"description": "Assigne plusieurs permissions à un rôle en une seule opération."
+					},
+					"response": []
+				},
+				{
+					"name": "4. Retirer Permission d'un Rôle",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles/{{role_id}}/permissions/{{permission_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles", "{{role_id}}", "permissions", "{{permission_id}}"]
+						},
+						"description": "Retire une permission d'un rôle."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🚫 Tests de Permissions (Accès Refusé)",
+			"item": [
+				{
+					"name": "1. Accès Sans Token → 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401 Unauthorized', function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test('Error message present', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles"]
+						},
+						"description": "Test: Accès aux endpoints admin sans token doit retourner 401."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Accès avec Token Invalide → 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401 Unauthorized', function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer invalid.token.here"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles"]
+						},
+						"description": "Test: Token invalide doit retourner 401."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Client accède Admin → 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('✓ Le client n\\'a pas accès aux endpoints admin');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles"]
+						},
+						"description": "Test: Un client ne doit pas pouvoir accéder aux endpoints admin (403 Forbidden)."
+					},
+					"response": []
+				},
+				{
+					"name": "4. Manager accède Admin → 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('✓ Le manager n\\'a pas accès aux endpoints admin (sauf si a ROLE_MANAGE)');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{manager_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nom\": \"HACKER_ROLE\",\n    \"description\": \"Tentative de création non autorisée\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles"]
+						},
+						"description": "Test: Un manager sans permission ROLE_MANAGE ne peut pas créer de rôle."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "✅ Validation des Données",
+			"item": [
+				{
+					"name": "1. Créer Rôle sans Nom → 400",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400 Bad Request', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Validation error returned', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"description\": \"Rôle sans nom - devrait échouer\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles"]
+						},
+						"description": "Test de validation: Un rôle sans nom doit échouer."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Rôle Inexistant → 404",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404 Not Found', function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles/non-existent-id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles", "non-existent-id"]
+						},
+						"description": "Test: Un ID de rôle inexistant doit retourner 404."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
+

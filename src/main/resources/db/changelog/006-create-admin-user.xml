@@ -3,15 +3,17 @@
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-    <!-- ============================================== -->
-    <!-- Migration: Création de l'utilisateur Admin par défaut -->
-    <!-- ============================================== -->
-
-    <!-- Ajouter un administrateur par défaut -->
     <changeSet id="007-insert-default-admin" author="smartlogi">
-        <comment>Crée un utilisateur administrateur par défaut pour la gestion des rôles et permissions</comment>
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM utilisateur WHERE email = 'admin@smartlogi.com'
+                </sqlCheck>
+            </not>
+        </preConditions>
+        <comment>Crée un utilisateur administrateur par défaut</comment>
 
         <insert tableName="utilisateur">
             <column name="id" value="admin-default-001"/>
@@ -19,23 +21,14 @@
             <column name="prenom" value="System"/>
             <column name="email" value="admin@smartlogi.com"/>
             <column name="telephone" value="+33100000000"/>
-            <!-- Mot de passe: Admin@123 (BCrypt encoded) -->
-            <column name="password" value="$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH"/>
+            <column name="password" value="$2a$10$z0Ust6gwIUZrj/wKvTEED.Z4k7XyVFLLF8oTkSztczX2tojfVEc8q"/>
             <column name="role" value="ADMIN"/>
         </insert>
-
-        <rollback>
-            <delete tableName="utilisateur">
-                <where>id = 'admin-default-001'</where>
-            </delete>
-        </rollback>
     </changeSet>
 
-    <!-- Assigner toutes les permissions admin au rôle ADMIN -->
     <changeSet id="007-assign-all-permissions-to-admin" author="smartlogi">
-        <comment>Donne au rôle ADMIN toutes les permissions du système</comment>
+        <comment>Donne au rôle ADMIN les permissions Colis, Livreur et Zone</comment>
 
-        <!-- Permissions COLIS -->
         <insert tableName="role_permission">
             <column name="role_id" value="role-admin-001"/>
             <column name="permission_id" value="perm-colis-create"/>
@@ -57,7 +50,6 @@
             <column name="permission_id" value="perm-colis-status"/>
         </insert>
 
-        <!-- Permissions LIVREUR et ZONE -->
         <insert tableName="role_permission">
             <column name="role_id" value="role-admin-001"/>
             <column name="permission_id" value="perm-livreur-manage"/>
@@ -67,18 +59,11 @@
             <column name="permission_id" value="perm-zone-manage"/>
         </insert>
 
-        <!-- Permissions STATS -->
         <insert tableName="role_permission">
             <column name="role_id" value="role-admin-001"/>
             <column name="permission_id" value="perm-stats-view"/>
         </insert>
 
-        <rollback>
-            <delete tableName="role_permission">
-                <where>role_id = 'role-admin-001' AND permission_id NOT IN ('perm-user-manage', 'perm-role-manage', 'perm-permission-manage')</where>
-            </delete>
-        </rollback>
     </changeSet>
 
 </databaseChangeLog>
-

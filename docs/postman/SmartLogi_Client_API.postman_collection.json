@@ -1,0 +1,909 @@
+{
+	"info": {
+		"_postman_id": "smartlogi-client-api-collection",
+		"name": "SmartLogi Client API - Tests Role CLIENT",
+		"description": "Collection Postman pour tester les endpoints accessibles au role CLIENT (Client Expediteur)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "client1_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "client2_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "client1_id",
+			"value": "user-client-001",
+			"type": "string"
+		},
+		{
+			"key": "client2_id",
+			"value": "user-client-002",
+			"type": "string"
+		},
+		{
+			"key": "colis_client1",
+			"value": "colis-test-001",
+			"type": "string"
+		},
+		{
+			"key": "colis_client2",
+			"value": "colis-test-003",
+			"type": "string"
+		},
+		{
+			"key": "new_colis_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Authentification Client",
+			"item": [
+				{
+					"name": "Login Client 1 - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response contains token', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.expect(jsonData.token).to.not.be.empty;",
+									"});",
+									"",
+									"pm.test('User has CLIENT role', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.role).to.equal('CLIENT');",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('client1_token', jsonData.token);",
+									"console.log('Token Client 1 sauvegarde avec succes');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"client1@smartlogi.com\",\n    \"password\": \"Admin@123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Connexion Client 1. Token JWT sauvegarde automatiquement."
+					},
+					"response": []
+				},
+				{
+					"name": "Login Client 2 - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('User has CLIENT role', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.role).to.equal('CLIENT');",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('client2_token', jsonData.token);",
+									"console.log('Token Client 2 sauvegarde avec succes');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"client2@smartlogi.com\",\n    \"password\": \"Admin@123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Connexion Client 2. Token JWT sauvegarde automatiquement."
+					},
+					"response": []
+				},
+				{
+					"name": "Login Client - Invalid Password (401)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401', function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test('Error message present', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"client1@smartlogi.com\",\n    \"password\": \"wrongpassword\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Test authentification avec mauvais mot de passe"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Gestion des Colis (Acces Autorise)",
+			"item": [
+				{
+					"name": "Client1 - Creer un Colis - 201",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Colis created with reference', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('reference');",
+									"    pm.expect(jsonData.statut).to.equal('EN_ATTENTE');",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.id) {",
+									"    pm.collectionVariables.set('new_colis_id', jsonData.id);",
+									"}",
+									"",
+									"console.log('Client a la permission COLIS_CREATE');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client1_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"description\": \"Colis cree par Client 1 via API\",\n    \"poids\": 3.5,\n    \"priorite\": \"NORMALE\",\n    \"expediteurId\": \"user-client-001\",\n    \"destinataireNom\": \"Mohammed Tazi\",\n    \"destinataireAdresse\": \"45 Rue Mohammed VI, Casablanca\",\n    \"destinataireTelephone\": \"+212655555555\",\n    \"zoneId\": \"zone-casa-001\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis"]
+						},
+						"description": "Client peut creer des demandes de livraison"
+					},
+					"response": []
+				},
+				{
+					"name": "Client1 - Voir ses propres colis - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is paginated', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('content');",
+									"});",
+									"",
+									"console.log('Client peut voir ses propres colis');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/client/{{client1_id}}?page=0&size=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "client", "{{client1_id}}"],
+							"query": [
+								{ "key": "page", "value": "0" },
+								{ "key": "size", "value": "10" }
+							]
+						},
+						"description": "Client peut voir ses propres colis envoyes"
+					},
+					"response": []
+				},
+				{
+					"name": "Client1 - Voir detail d'un colis - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Colis has expected properties', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('reference');",
+									"    pm.expect(jsonData).to.have.property('statut');",
+									"});",
+									"",
+									"console.log('Client a la permission COLIS_READ sur ses colis');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/{{colis_client1}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "{{colis_client1}}"]
+						},
+						"description": "Client peut voir le detail d'un de ses colis"
+					},
+					"response": []
+				},
+				{
+					"name": "Client1 - Voir son profil - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Profile has expected properties', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('nom');",
+									"    pm.expect(jsonData).to.have.property('email');",
+									"});",
+									"",
+									"console.log('Client peut voir son propre profil');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/client-expediteurs/{{client1_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "client-expediteurs", "{{client1_id}}"]
+						},
+						"description": "Client peut voir son propre profil"
+					},
+					"response": []
+				},
+				{
+					"name": "Client1 - Mettre a jour son profil - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Profile updated', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.adresse).to.include('Mise a jour');",
+									"});",
+									"",
+									"console.log('Client peut mettre a jour son propre profil');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client1_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nom\": \"Alaoui\",\n    \"prenom\": \"Fatima\",\n    \"email\": \"client1@smartlogi.com\",\n    \"telephone\": \"+212600000005\",\n    \"adresse\": \"Adresse Mise a jour via API - 12 Rue Hassan II, Casablanca\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/client-expediteurs/{{client1_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "client-expediteurs", "{{client1_id}}"]
+						},
+						"description": "Client peut mettre a jour son propre profil"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Tests Acces Refuse (403)",
+			"item": [
+				{
+					"name": "Client1 - Voir colis Client2 - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Client 1 ne peut pas voir les colis de Client 2');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/client/{{client2_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "client", "{{client2_id}}"]
+						},
+						"description": "Client 1 ne peut pas voir les colis de Client 2"
+					},
+					"response": []
+				},
+				{
+					"name": "Client1 - Voir detail colis Client2 - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Client 1 ne peut pas voir le detail des colis de Client 2');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/{{colis_client2}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "{{colis_client2}}"]
+						},
+						"description": "Client 1 ne peut pas voir le detail d'un colis de Client 2"
+					},
+					"response": []
+				},
+				{
+					"name": "Client1 - Voir profil Client2 - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Client 1 ne peut pas voir le profil de Client 2');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/client-expediteurs/{{client2_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "client-expediteurs", "{{client2_id}}"]
+						},
+						"description": "Client 1 ne peut pas voir le profil de Client 2"
+					},
+					"response": []
+				},
+				{
+					"name": "Client - Lister tous les colis - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Client ne peut pas lister TOUS les colis (MANAGER only)');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis"]
+						},
+						"description": "Client ne peut pas lister tous les colis (endpoint Manager)"
+					},
+					"response": []
+				},
+				{
+					"name": "Client - Supprimer un colis - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Client ne peut pas supprimer de colis (MANAGER only)');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/{{colis_client1}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "{{colis_client1}}"]
+						},
+						"description": "Client ne peut pas supprimer de colis"
+					},
+					"response": []
+				},
+				{
+					"name": "Client - Mettre a jour statut colis - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Client ne peut pas modifier le statut des colis (LIVREUR only)');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client1_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"statut\": \"LIVRE\",\n    \"commentaire\": \"Tentative non autorisee\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/{{colis_client1}}/statut",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "{{colis_client1}}", "statut"]
+						},
+						"description": "Client ne peut pas modifier le statut des colis"
+					},
+					"response": []
+				},
+				{
+					"name": "Client - Lister tous les clients - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Client ne peut pas lister tous les clients (MANAGER only)');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/client-expediteurs",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "client-expediteurs"]
+						},
+						"description": "Client ne peut pas lister tous les clients"
+					},
+					"response": []
+				},
+				{
+					"name": "Client - Acces Livreurs API - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Client ne peut pas acceder a la gestion des livreurs');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/livreurs",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "livreurs"]
+						},
+						"description": "Client ne peut pas acceder a la gestion des livreurs"
+					},
+					"response": []
+				},
+				{
+					"name": "Client - Acces Zones API - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Client ne peut pas acceder a la gestion des zones');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/zones",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "zones"]
+						},
+						"description": "Client ne peut pas acceder a la gestion des zones"
+					},
+					"response": []
+				},
+				{
+					"name": "Client - Acces Gestion API - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Client ne peut pas acceder aux statistiques');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/gestion/statistiques",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "gestion", "statistiques"]
+						},
+						"description": "Client ne peut pas acceder aux statistiques"
+					},
+					"response": []
+				},
+				{
+					"name": "Client - Acces Admin API - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 403 Forbidden', function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"console.log('Client ne peut pas acceder aux endpoints Admin');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{client1_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/roles",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "roles"]
+						},
+						"description": "Client ne peut pas acceder a l'administration"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Tests Securite",
+			"item": [
+				{
+					"name": "Acces sans Token - 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401 Unauthorized', function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/client/{{client1_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "client", "{{client1_id}}"]
+						},
+						"description": "Acces sans JWT doit retourner 401"
+					},
+					"response": []
+				},
+				{
+					"name": "Acces avec Token Invalide - 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401 Unauthorized', function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer invalid.token.here"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/client/{{client1_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "client", "{{client1_id}}"]
+						},
+						"description": "Token invalide doit retourner 401"
+					},
+					"response": []
+				},
+				{
+					"name": "Acces avec Token Expire - 401",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401 Unauthorized', function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjbGllbnQxQHNtYXJ0bG9naS5jb20iLCJpYXQiOjE2MDAwMDAwMDAsImV4cCI6MTYwMDAwMDAwMX0.expired_signature"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/colis/client/{{client1_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "colis", "client", "{{client1_id}}"]
+						},
+						"description": "Token expire doit retourner 401"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
+
