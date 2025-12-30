@@ -14,6 +14,13 @@ public interface LivreurMapper {
     LivreurDTO toDto(Livreur entity);
 
     @Mapping(source = "zoneId", target = "zone", qualifiedByName = "zoneFromId")
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "role", ignore = true)
+    @Mapping(target = "provider", ignore = true)
+    @Mapping(target = "providerId", ignore = true)
+    @Mapping(target = "imageUrl", ignore = true)
+    @Mapping(target = "enabled", ignore = true)
+    @Mapping(target = "emailVerified", ignore = true)
     Livreur toEntity(LivreurDTO dto);
 
 

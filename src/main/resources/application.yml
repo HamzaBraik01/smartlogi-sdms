@@ -5,7 +5,6 @@ spring:
     password: ADMIN
     driver-class-name: org.postgresql.Driver
 
-
   jpa:
     hibernate:
       ddl-auto: none
@@ -14,6 +13,33 @@ spring:
   liquibase:
     change-log: classpath:db/changelog/changelog-master.xml
     enabled: true
+
+  # ==================== CONFIGURATION OAUTH2 ====================
+  security:
+    oauth2:
+      client:
+        registration:
+          # Google OAuth2
+          google:
+            client-id: 1080902755740-f8sj4cr10m5m1f2mmanbdbq8h5o01b7g.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - email
+              - profile
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
+          # Facebook OAuth2
+          facebook:
+            client-id: 903339692259126
+            client-secret: 9949ac2c873de3c220fc6d87ef47c9b1
+            scope:
+              - email
+              - public_profile
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
+
+
+# ==================== SWAGGER/OPENAPI ====================
 springdoc:
   api-docs:
     path: /v3/api-docs
@@ -25,10 +51,21 @@ springdoc:
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
 
-# ==== JWT / Security (valeurs par défaut; remplacer en prod) ====
+# ==================== JWT / SECURITY ====================
 security:
   jwt:
-    # Secret peut être en UTF-8 ou base64; en prod, préférer base64 et une valeur forte
-    secret: change-me-change-me-change-me-change-me-32-bytes
-    # Durée de validité en millisecondes (ici 24h)
-    expiration-ms: 86400000
+    # Secret JWT (minimum 32 caractères, changer en production!)
+    secret: ${JWT_SECRET:change-me-change-me-change-me-change-me-32-bytes}
+    # Durée de validité en millisecondes (24h)
+    expiration-ms: ${JWT_EXPIRATION:86400000}
+
+# ==================== APPLICATION OAUTH2 ====================
+app:
+  oauth2:
+    # URI de redirection après authentification OAuth2 réussie
+    authorized-redirect-uri: ${OAUTH2_REDIRECT_URI:http://localhost:4200/oauth2/redirect}
+    # Liste des URIs de redirection autorisées
+    authorized-redirect-uris:
+      - http://localhost:4200/oauth2/redirect
+      - http://localhost:3000/oauth2/redirect
+      - http://localhost:8080/oauth2/redirect

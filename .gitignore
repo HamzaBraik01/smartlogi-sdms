@@ -40,6 +40,6 @@ logs/
 docs/TESTS_CONTROLLER_CLIENT_EXPEDITEUR.md
 docs/TESTS_CONTROLLERS_COMPLET.md
 docs/postman
-
+docs/*.md
 
 

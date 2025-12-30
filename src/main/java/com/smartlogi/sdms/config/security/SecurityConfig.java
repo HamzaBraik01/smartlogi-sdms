@@ -1,5 +1,8 @@
 package com.smartlogi.sdms.config.security;
 
+import com.smartlogi.sdms.config.security.oauth2.CustomOAuth2UserService;
+import com.smartlogi.sdms.config.security.oauth2.OAuth2AuthenticationFailureHandler;
+import com.smartlogi.sdms.config.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,6 +21,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfigurationSource;
 
 
+/**
+ * Configuration Spring Security avec authentification hybride:
+ * - Authentification classique (email/password) → JWT
+ * - Authentification OAuth2 (Google, Facebook, Apple, Okta) → JWT interne
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -29,16 +37,27 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final CorsConfigurationSource corsConfigurationSource;
 
+    // Composants OAuth2
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2AuthenticationSuccessHandler oAuth2SuccessHandler;
+    private final OAuth2AuthenticationFailureHandler oAuth2FailureHandler;
+
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
                           JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
                           CustomAccessDeniedHandler accessDeniedHandler,
                           CustomUserDetailsService userDetailsService,
-                          CorsConfigurationSource corsConfigurationSource) {
+                          CorsConfigurationSource corsConfigurationSource,
+                          CustomOAuth2UserService customOAuth2UserService,
+                          OAuth2AuthenticationSuccessHandler oAuth2SuccessHandler,
+                          OAuth2AuthenticationFailureHandler oAuth2FailureHandler) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
         this.accessDeniedHandler = accessDeniedHandler;
         this.userDetailsService = userDetailsService;
         this.corsConfigurationSource = corsConfigurationSource;
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.oAuth2SuccessHandler = oAuth2SuccessHandler;
+        this.oAuth2FailureHandler = oAuth2FailureHandler;
     }
 
 
@@ -62,8 +81,12 @@ public class SecurityConfig {
 
                 // Règles d'autorisation des endpoints
                 .authorizeHttpRequests(auth -> auth
-                        // Endpoints publics - Authentification
+                        // Endpoints publics - Authentification classique
                         .requestMatchers("/auth/**").permitAll()
+
+                        // Endpoints publics - OAuth2
+                        .requestMatchers("/oauth2/**").permitAll()
+                        .requestMatchers("/login/oauth2/**").permitAll()
 
                         // Endpoints publics - Documentation API
                         .requestMatchers("/swagger-ui/**").permitAll()
@@ -104,7 +127,18 @@ public class SecurityConfig {
                         // Tout le reste nécessite une authentification
                         .anyRequest().authenticated())
 
-                // Provider d'authentification
+                // ==================== CONFIGURATION OAUTH2 ====================
+                .oauth2Login(oauth2 -> oauth2
+                        // Service pour charger/créer l'utilisateur
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService))
+                        // Handler en cas de succès → génère JWT
+                        .successHandler(oAuth2SuccessHandler)
+                        // Handler en cas d'échec
+                        .failureHandler(oAuth2FailureHandler)
+                )
+
+                // Provider d'authentification classique
                 .authenticationProvider(authenticationProvider())
 
                 // Ajouter le filtre JWT avant le filtre d'authentification par défaut

@@ -1,5 +1,6 @@
 package com.smartlogi.sdms.config.security;
 
+import com.smartlogi.sdms.config.security.oauth2.OAuth2UserPrincipal;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -36,7 +37,9 @@ public class JwtTokenProvider {
         this.jwtExpirationMs = jwtExpirationMs;
     }
 
-
+    /**
+     * Génère un JWT pour l'authentification classique (email/password).
+     */
     public String generateToken(Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
@@ -53,6 +56,33 @@ public class JwtTokenProvider {
                 .claim("roles", roles)
                 .claim("nom", userDetails.getNom())
                 .claim("prenom", userDetails.getPrenom())
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(signingKey, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    /**
+     * Génère un JWT pour l'authentification OAuth2.
+     * Le token généré est IDENTIQUE à celui de l'auth classique.
+     */
+    public String generateTokenFromOAuth2(Authentication authentication) {
+        OAuth2UserPrincipal principal = (OAuth2UserPrincipal) authentication.getPrincipal();
+
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
+
+        String roles = principal.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
+
+        return Jwts.builder()
+                .setSubject(principal.getEmail())
+                .claim("userId", principal.getId())
+                .claim("roles", roles)
+                .claim("nom", principal.getNom() != null ? principal.getNom() : "")
+                .claim("prenom", principal.getPrenom() != null ? principal.getPrenom() : "")
+                .claim("provider", principal.getUtilisateur().getProvider().name())
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(signingKey, SignatureAlgorithm.HS256)
