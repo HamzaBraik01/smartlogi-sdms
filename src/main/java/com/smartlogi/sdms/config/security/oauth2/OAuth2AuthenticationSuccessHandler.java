@@ -49,9 +49,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
-    /**
-     * Construit l'URL de redirection avec le JWT en paramètre.
-     */
+
     protected String determineTargetUrl(Authentication authentication) {
         OAuth2UserPrincipal principal = (OAuth2UserPrincipal) authentication.getPrincipal();
 

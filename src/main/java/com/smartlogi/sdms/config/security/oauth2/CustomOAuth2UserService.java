@@ -19,13 +19,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 
-/**
- * Service personnalisé pour le chargement des utilisateurs OAuth2.
- *
- * Ce service est appelé après une authentification OAuth2 réussie.
- * Il récupère les informations utilisateur depuis le provider,
- * crée ou met à jour l'utilisateur en base, et retourne un OAuth2UserPrincipal.
- */
+
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
