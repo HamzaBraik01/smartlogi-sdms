@@ -1,4 +1,4 @@
-# Configuration de test pour Spring Boot
+# Configuration par défaut pour les tests
 spring:
   main:
     allow-bean-definition-overriding: true
@@ -7,7 +7,6 @@ spring:
     username: sa
     password:
     driver-class-name: org.h2.Driver
-
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -15,9 +14,15 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
-
   liquibase:
     enabled: false
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-client-id
+            client-secret: test-client-secret
 
 # Configuration JWT pour les tests
 security:

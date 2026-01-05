@@ -142,15 +142,30 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-        return ResponseEntity.ok(Map.of(
-                "userId", userDetails.getId(),
-                "email", userDetails.getUsername(),
-                "nom", userDetails.getNom(),
-                "prenom", userDetails.getPrenom(),
-                "role", userDetails.getRole()
-        ));
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Non authentifié"));
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof CustomUserDetails userDetails) {
+            java.util.HashMap<String, Object> response = new java.util.HashMap<>();
+            response.put("userId", userDetails.getId() != null ? userDetails.getId() : "");
+            response.put("email", userDetails.getUsername() != null ? userDetails.getUsername() : "");
+            response.put("nom", userDetails.getNom() != null ? userDetails.getNom() : "");
+            response.put("prenom", userDetails.getPrenom() != null ? userDetails.getPrenom() : "");
+            response.put("role", userDetails.getRole() != null ? userDetails.getRole().name() : "UNKNOWN");
+            return ResponseEntity.ok(response);
+        } else if (principal instanceof String) {
+            // Cas où le principal est juste un username (anonyme ou mal configuré)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Non authentifié"));
+        }
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", "Erreur interne d'authentification"));
     }
 
 

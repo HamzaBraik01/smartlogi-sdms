@@ -1,6 +1,7 @@
 package com.smartlogi.sdms.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.smartlogi.sdms.config.TestSecurityConfig;
 import com.smartlogi.sdms.dto.LivreurDTO;
 import com.smartlogi.sdms.exception.InvalidDataException;
 import com.smartlogi.sdms.exception.ResourceNotFoundException;
@@ -9,7 +10,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -29,6 +32,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(LivreurController.class)
+@AutoConfigureMockMvc(addFilters = false)
+@Import(TestSecurityConfig.class)
 @DisplayName("Tests Unitaires pour LivreurController")
 class LivreurControllerTest {
 

@@ -1,4 +1,5 @@
 package com.smartlogi.sdms.entity;
+import com.smartlogi.sdms.entity.enumeration.RoleUtilisateur;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.Getter;
@@ -12,4 +13,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class GestionnaireLogistique extends Utilisateur {
 
+    @Override
+    public RoleUtilisateur getRole() {
+        return RoleUtilisateur.GESTIONNAIRE;
+    }
 }

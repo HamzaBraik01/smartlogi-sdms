@@ -1,5 +1,6 @@
 package com.smartlogi.sdms.entity;
 
+import com.smartlogi.sdms.entity.enumeration.RoleUtilisateur;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,4 +20,8 @@ public class Livreur extends Utilisateur {
     @JoinColumn(name = "zone_id")
     private Zone zone;
 
+    @Override
+    public RoleUtilisateur getRole() {
+        return RoleUtilisateur.LIVREUR;
+    }
 }

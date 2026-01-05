@@ -1,5 +1,6 @@
 package com.smartlogi.sdms.entity;
 
+import com.smartlogi.sdms.entity.enumeration.RoleUtilisateur;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -15,4 +16,9 @@ import lombok.Setter;
 public class ClientExpediteur extends Utilisateur {
     @Column(name = "adresse")
     private String adresse;
+
+    @Override
+    public RoleUtilisateur getRole() {
+        return RoleUtilisateur.CLIENT_EXPEDITEUR;
+    }
 }

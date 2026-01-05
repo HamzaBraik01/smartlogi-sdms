@@ -154,18 +154,33 @@ class JwtTokenProviderTest {
      * Crée une Authentication mock pour les tests.
      */
     private Authentication createMockAuthentication(String email, RoleUtilisateur role) {
+        // Créer un mock Utilisateur avec le rôle correctement défini
         GestionnaireLogistique user = new GestionnaireLogistique();
         user.setId("test-user-id");
         user.setEmail(email);
         user.setNom("Test");
         user.setPrenom("User");
         user.setPassword("password");
-        // Le rôle est défini par le discriminator, mais on peut le simuler
 
+        // Créer CustomUserDetails avec le rôle spécifié via une sous-classe anonyme
         CustomUserDetails userDetails = new CustomUserDetails(user) {
             @Override
             public String getId() {
                 return "test-user-id";
+            }
+
+            @Override
+            public java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> getAuthorities() {
+                String authority = switch (role) {
+                    case ADMIN -> "ROLE_ADMIN";
+                    case GESTIONNAIRE -> "ROLE_MANAGER";
+                    case LIVREUR -> "ROLE_DELIVERY";
+                    case CLIENT_EXPEDITEUR -> "ROLE_CLIENT";
+                    case DESTINATAIRE -> "ROLE_VIEWER";
+                };
+                return java.util.Collections.singletonList(
+                        new org.springframework.security.core.authority.SimpleGrantedAuthority(authority)
+                );
             }
         };
 
