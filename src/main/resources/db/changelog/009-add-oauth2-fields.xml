@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+
+    <changeSet id="009-add-oauth2-fields" author="SmartLogi">
+        <comment>Ajout des champs pour l'authentification OAuth2 hybride</comment>
+
+        <!-- Ajouter la colonne provider -->
+        <addColumn tableName="utilisateur">
+            <column name="provider" type="VARCHAR(20)" defaultValue="LOCAL">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <!-- Ajouter la colonne provider_id -->
+        <addColumn tableName="utilisateur">
+            <column name="provider_id" type="VARCHAR(255)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <!-- Ajouter la colonne image_url -->
+        <addColumn tableName="utilisateur">
+            <column name="image_url" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <!-- Ajouter la colonne enabled -->
+        <addColumn tableName="utilisateur">
+            <column name="enabled" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <!-- Ajouter la colonne email_verified -->
+        <addColumn tableName="utilisateur">
+            <column name="email_verified" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <!-- Index composite pour recherche par provider + provider_id -->
+        <createIndex tableName="utilisateur" indexName="idx_utilisateur_provider_provider_id">
+            <column name="provider"/>
+            <column name="provider_id"/>
+        </createIndex>
+
+    </changeSet>
+
+
+    <changeSet id="009-update-existing-users-oauth2" author="SmartLogi">
+        <comment>Marquer les utilisateurs existants comme LOCAL avec email vérifié</comment>
+
+        <update tableName="utilisateur">
+            <column name="provider" value="LOCAL"/>
+            <column name="enabled" valueBoolean="true"/>
+            <column name="email_verified" valueBoolean="true"/>
+            <where>provider IS NULL OR provider = ''</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>
+
