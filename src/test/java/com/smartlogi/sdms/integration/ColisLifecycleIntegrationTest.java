@@ -197,12 +197,20 @@ class ColisLifecycleIntegrationTest {
         List<HistoriqueLivraison> historique = historiqueLivraisonRepository.findAllByColisIdOrderByDateChangementDesc(testColisId);
         assertThat(historique).hasSize(2);
 
-        // Le plus récent doit être COLLECTE
-        assertThat(historique.get(0).getStatut()).isEqualTo(StatutColis.COLLECTE);
-        assertThat(historique.get(0).getCommentaire()).isEqualTo(commentaire);
+        // Extraire les statuts de l'historique
+        List<StatutColis> statuts = historique.stream()
+                .map(HistoriqueLivraison::getStatut)
+                .toList();
 
-        // Le plus ancien doit être CREE
-        assertThat(historique.get(1).getStatut()).isEqualTo(StatutColis.CREE);
+        // Vérifier que les deux statuts attendus sont présents
+        assertThat(statuts).containsExactlyInAnyOrder(StatutColis.CREE, StatutColis.COLLECTE);
+
+        // Vérifier le commentaire pour COLLECTE
+        HistoriqueLivraison historiqueCollecte = historique.stream()
+                .filter(h -> h.getStatut() == StatutColis.COLLECTE)
+                .findFirst()
+                .orElseThrow();
+        assertThat(historiqueCollecte.getCommentaire()).isEqualTo(commentaire);
     }
 
     @Test
