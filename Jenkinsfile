@@ -159,10 +159,9 @@ pipeline {
             steps {
                 echo '🚢 Déploiement sur l\'environnement de staging...'
                 script {
-                    bat '''
-                        docker-compose -f docker-compose.yml down || true
-                        docker-compose -f docker-compose.yml up -d
-                    '''
+                    // Arrêt des containers existants (ignore les erreurs si aucun container n'existe)
+                    bat 'docker-compose -f docker-compose.yml down 2>nul || exit 0'
+                    bat 'docker-compose -f docker-compose.yml up -d'
                 }
             }
         }
@@ -175,10 +174,9 @@ pipeline {
                 echo '🏭 Déploiement sur l\'environnement de production...'
                 input message: 'Déployer en production ?', ok: 'Déployer'
                 script {
-                    bat '''
-                        docker-compose -f docker-compose.yml down || true
-                        docker-compose -f docker-compose.yml up -d
-                    '''
+                    // Arrêt des containers existants (ignore les erreurs si aucun container n'existe)
+                    bat 'docker-compose -f docker-compose.yml down 2>nul || exit 0'
+                    bat 'docker-compose -f docker-compose.yml up -d'
                 }
             }
         }
